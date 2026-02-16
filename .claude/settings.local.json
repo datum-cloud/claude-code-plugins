@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(done)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(head:*)",
+      "WebSearch",
+      "Bash(xargs:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  },
+  "plugins": [
+    {
+      "name": "datum-cloud",
+      "url": "file:///Users/scotwells/repos/datum-cloud/claude-code-plugin"
+    }
+  ]
+}

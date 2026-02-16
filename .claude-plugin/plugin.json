@@ -1,0 +1,8 @@
+{
+  "name": "datum-cloud",
+  "description": "Datum Cloud development agents and skills for Claude Code",
+  "version": "1.0.0",
+  "author": {
+    "name": "Datum Cloud"
+  }
+}
