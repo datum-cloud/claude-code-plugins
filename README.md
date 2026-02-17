@@ -126,8 +126,6 @@ Kubernetes platform engineering automation with aggregated API servers, controll
 **Category:** Platform Engineering
 **Tags:** kubernetes, go, infrastructure, multi-tenant, devops
 
-[View full documentation](./plugins/datum-platform/)
-
 ### datum-gtm
 
 Go-to-market automation with commercial strategy, product discovery, and customer support tools.
@@ -140,8 +138,6 @@ Go-to-market automation with commercial strategy, product discovery, and custome
 
 **Category:** Business
 **Tags:** gtm, marketing, product, support, commercial
-
-[View full documentation](./plugins/datum-gtm/)
 
 ## Contributing
 
@@ -196,6 +192,16 @@ Go-to-market automation with commercial strategy, product discovery, and custome
 - Include a README in your plugin directory with usage documentation
 - Follow semantic versioning for plugin versions
 - Test your plugin locally before submitting
+
+For detailed guidance on plugin development, see the [official Claude Code documentation](https://code.claude.com/docs/en/plugins).
+
+## Documentation
+
+- [Create plugins](https://code.claude.com/docs/en/plugins) - Guide to creating plugins with commands, agents, hooks, MCP servers, and more
+- [Discover and install plugins](https://code.claude.com/docs/en/discover-plugins) - Installing plugins from marketplaces
+- [Plugin marketplaces](https://code.claude.com/docs/en/plugin-marketplaces) - Creating and distributing plugin marketplaces
+- [Plugins reference](https://code.claude.com/docs/en/plugins-reference) - Complete technical specifications and schemas
+- [Plugin settings](https://code.claude.com/docs/en/settings#plugin-settings) - Configuration options
 
 ## License
 
