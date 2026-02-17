@@ -95,7 +95,6 @@ claude-code-plugins/
 │   ├── datum-platform/         # Platform engineering plugin
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json     # Plugin manifest
-│   │   ├── .mcp.json           # MCP server configuration
 │   │   ├── agents/             # Specialized agents
 │   │   ├── skills/             # Knowledge modules
 │   │   ├── commands/           # Slash commands
@@ -121,7 +120,6 @@ Kubernetes platform engineering automation with aggregated API servers, controll
 - 24 skill modules covering Kubernetes patterns, Go conventions, deployment workflows, and more
 - Pipeline orchestration for structured feature development
 - Automatic learning engine for pattern extraction
-- MCP integration for kubectl and GitHub CLI
 
 **Category:** Platform Engineering
 **Tags:** kubernetes, go, infrastructure, multi-tenant, devops
@@ -169,7 +167,6 @@ Go-to-market automation with commercial strategy, product discovery, and custome
    - `skills/` - Knowledge modules
    - `commands/` - Slash commands
    - `hooks/` - Automation hooks
-   - `.mcp.json` - MCP server configuration (optional)
 
 4. Register your plugin in `.claude-plugin/marketplace.json`:
    ```json
