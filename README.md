@@ -13,23 +13,44 @@ A marketplace for Claude Code plugins providing platform engineering tools and a
 
 ### Adding the Marketplace
 
-Add this marketplace to your Claude Code configuration:
+Add this marketplace to Claude Code:
 
 ```bash
 # In Claude Code:
-/plugin marketplace add https://github.com/datum-cloud/claude-code-marketplace
+/plugin marketplace add datum-cloud/claude-code-plugins
 ```
 
-Or add to your `.claude/settings.json`:
+Or configure it in your project's `.claude/settings.json` to prompt team members to install the marketplace when they trust the project folder:
 
 ```json
 {
-  "marketplaces": [
-    {
-      "name": "datum-cloud-marketplace",
-      "url": "https://github.com/datum-cloud/claude-code-marketplace"
+  "extraKnownMarketplaces": {
+    "datum-claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "datum-cloud/claude-code-plugins"
+      }
     }
-  ]
+  }
+}
+```
+
+You can also pre-enable specific plugins:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "datum-claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "datum-cloud/claude-code-plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "datum-platform@datum-claude-code-plugins": true,
+    "datum-gtm@datum-claude-code-plugins": true
+  }
 }
 ```
 
@@ -44,11 +65,24 @@ Once the marketplace is added, install plugins by name:
 
 ### Local Development
 
-For local development, run Claude Code with the plugin directory:
+For local development, add the marketplace from your local directory:
 
 ```bash
-claude --plugin-dir /path/to/claude-code-marketplace/plugins/datum-platform
-claude --plugin-dir /path/to/claude-code-marketplace/plugins/datum-gtm
+# In Claude Code:
+/plugin marketplace add ./path/to/claude-code-plugins
+/plugin install datum-platform@datum-claude-code-plugins
+```
+
+### Validation
+
+Validate the marketplace before distribution:
+
+```bash
+# From the command line:
+claude plugin validate .
+
+# Or from within Claude Code:
+/plugin validate .
 ```
 
 ## Marketplace Structure
@@ -128,7 +162,7 @@ Go-to-market automation with commercial strategy, product discovery, and custome
        "name": "Your Name",
        "url": "https://github.com/your-org"
      },
-     "repository": "https://github.com/datum-cloud/claude-code-marketplace",
+     "repository": "https://github.com/datum-cloud/claude-code-plugins",
      "license": "MIT",
      "keywords": ["your", "keywords"]
    }
@@ -145,7 +179,7 @@ Go-to-market automation with commercial strategy, product discovery, and custome
    ```json
    {
      "name": "your-plugin-name",
-     "source": "./your-plugin-name",
+     "source": "./plugins/your-plugin-name",
      "description": "Description of your plugin",
      "version": "1.0.0",
      "category": "your-category",
