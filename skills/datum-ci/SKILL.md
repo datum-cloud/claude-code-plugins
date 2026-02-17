@@ -1,3 +1,8 @@
+---
+name: datum-ci
+description: Covers CI/CD patterns using GitHub Actions with reusable workflows. Use when setting up pipelines, Taskfiles, or Dockerfiles for Datum Cloud services.
+---
+
 # Datum CI
 
 This skill covers CI/CD patterns for Datum Cloud services.

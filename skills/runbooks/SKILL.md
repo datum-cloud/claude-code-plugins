@@ -1,3 +1,8 @@
+---
+name: runbooks
+description: Explains the runbook system for accumulating learnings including patterns, anti-patterns, and service-specific guidance. Use when understanding how agents use runbooks or when manually adding entries.
+---
+
 # Runbooks
 
 This skill explains the runbook system for accumulating learnings.

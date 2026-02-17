@@ -1,3 +1,8 @@
+---
+name: milo-iam
+description: Covers the Identity and Access Management system including ProtectedResource, Role, and PolicyBinding definitions. Use when implementing authorization for new resource types or defining service roles.
+---
+
 # Milo IAM
 
 This skill covers the Identity and Access Management (IAM) system in Milo, the Datum Cloud control plane.

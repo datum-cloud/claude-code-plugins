@@ -1,3 +1,8 @@
+---
+name: controller-runtime-patterns
+description: Covers patterns for building Kubernetes controllers using controller-runtime with Milo's multi-cluster runtime provider. Use when implementing controllers that need to operate across project control planes.
+---
+
 # Controller-Runtime Patterns
 
 This skill covers patterns for building Kubernetes controllers using controller-runtime with Milo's multi-cluster runtime provider.

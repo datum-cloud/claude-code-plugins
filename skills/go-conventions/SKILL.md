@@ -1,3 +1,8 @@
+---
+name: go-conventions
+description: Covers Go coding conventions including import grouping, error handling, naming, and comments. Use when writing or reviewing Go code to ensure consistency across services.
+---
+
 # Go Conventions
 
 This skill covers Go coding conventions for Datum Cloud services.

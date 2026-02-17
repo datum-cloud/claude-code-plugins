@@ -1,3 +1,8 @@
+---
+name: platform-knowledge
+description: Provides high-level understanding of the Datum Cloud platform architecture. Use when onboarding to the codebase, understanding the system structure, or learning about multi-tenancy, resource hierarchy, and service architecture.
+---
+
 # Platform Knowledge
 
 This skill provides high-level understanding of the Datum Cloud platform architecture.

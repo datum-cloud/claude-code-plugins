@@ -1,3 +1,8 @@
+---
+name: fluxcd-deployment
+description: Covers GitOps deployment using FluxCD with OCIRepository and Flux Kustomization resources. Use when configuring deployments, dependency ordering, or inline patching in the infra repository.
+---
+
 # FluxCD Deployment Patterns
 
 This skill covers how services are deployed to Datum Cloud infrastructure using FluxCD GitOps.

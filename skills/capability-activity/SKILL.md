@@ -1,3 +1,8 @@
+---
+name: capability-activity
+description: Covers activity timeline integration using the Activity system. Use when implementing ActivityPolicy resources, emitting Kubernetes events for activity tracking, or exposing activity timelines to users via CLI, UI, or API.
+---
+
 # Capability: Activity
 
 This skill covers activity timeline integration for Datum Cloud services using the Activity system.

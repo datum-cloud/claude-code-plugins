@@ -1,3 +1,8 @@
+---
+name: k8s-apiserver-patterns
+description: Covers patterns for building Kubernetes aggregated API servers including REST handlers, storage interfaces, scheme registration, and type definitions. Use when implementing API types, storage backends, or server configuration.
+---
+
 # Kubernetes API Server Patterns
 
 This skill covers patterns for building Kubernetes aggregated API servers and understanding when to choose this approach over CRD-based controllers.

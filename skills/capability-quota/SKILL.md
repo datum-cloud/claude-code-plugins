@@ -1,3 +1,8 @@
+---
+name: capability-quota
+description: Covers resource quota integration using the Milo quota system. Use when implementing ResourceRegistration, ClaimCreationPolicy, or GrantCreationPolicy resources for quota enforcement and allocation.
+---
+
 # Capability: Quota
 
 This skill covers quota integration for Datum Cloud services using the Milo quota system.

@@ -1,3 +1,8 @@
+---
+name: learning-engine
+description: Provides automatic pattern extraction and knowledge accumulation from review findings. Use when running /evolve, /patterns, or /trends commands, or when understanding how patterns are promoted to runbooks.
+---
+
 # Learning Engine
 
 This skill provides automatic pattern extraction and knowledge accumulation from review findings, session learnings, and cross-service insights.

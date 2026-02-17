@@ -1,3 +1,8 @@
+---
+name: capability-telemetry
+description: Covers observability integration including metrics, traces, and logs following OpenTelemetry conventions. Use when instrumenting services for monitoring and debugging.
+---
+
 # Capability: Telemetry
 
 This skill covers telemetry integration for Datum Cloud services.

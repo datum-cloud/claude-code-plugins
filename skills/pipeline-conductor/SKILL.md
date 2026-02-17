@@ -1,3 +1,8 @@
+---
+name: pipeline-conductor
+description: Covers pipeline orchestration for feature development including stages, handoffs, and artifact management. Use when coordinating work through the discovery to deployment pipeline.
+---
+
 # Pipeline Conductor
 
 This skill covers pipeline orchestration for feature development.

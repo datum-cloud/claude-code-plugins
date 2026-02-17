@@ -1,3 +1,8 @@
+---
+name: kustomize-patterns
+description: Covers Kustomize deployment patterns using base, components, and overlays structure. Use when organizing Kubernetes manifests for different environments.
+---
+
 # Kustomize Patterns
 
 This skill covers Kustomize deployment patterns for Datum Cloud services.

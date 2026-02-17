@@ -1,3 +1,8 @@
+---
+name: design-tokens
+description: Covers the design token architecture for Datum Cloud UIs including colors, spacing, typography, and theme support. Use when implementing UI components to ensure visual consistency.
+---
+
 # Design Tokens
 
 This skill covers the design token architecture for Datum Cloud UIs.

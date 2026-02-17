@@ -1,3 +1,8 @@
+---
+name: capability-insights
+description: Covers proactive issue detection using the Insights system. Use when implementing InsightPolicy resources with CEL-based rules to automatically detect misconfigurations, health issues, or security concerns.
+---
+
 # Capability: Insights
 
 This skill covers insights integration for Datum Cloud services using the Insights system.

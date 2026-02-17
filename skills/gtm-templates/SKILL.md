@@ -1,3 +1,8 @@
+---
+name: gtm-templates
+description: Provides templates for go-to-market communications including blog posts, changelogs, social media, and enablement briefs. Use when writing launch announcements or marketing content.
+---
+
 # GTM Templates
 
 This skill provides templates for go-to-market communications.

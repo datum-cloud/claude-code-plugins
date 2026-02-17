@@ -1,3 +1,8 @@
+---
+name: commercial-models
+description: Covers pricing frameworks and commercial patterns including usage-based, subscription, and hybrid models. Use when designing pricing tiers, migration strategies, or assessing commercial viability of features.
+---
+
 # Commercial Models
 
 This skill covers pricing frameworks and commercial patterns for Datum Cloud services.
