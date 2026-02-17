@@ -1,0 +1,30 @@
+{
+  "name": "datum-claude-code-plugins",
+  "owner": {
+    "name": "Datum Cloud",
+    "email": "engineering@datumcloud.io"
+  },
+  "metadata": {
+    "description": "Claude Code plugin marketplace with platform engineering and GTM tools",
+    "version": "2.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "datum-platform",
+      "source": "./datum-platform",
+      "description": "Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment",
+      "version": "1.0.0",
+      "category": "platform-engineering",
+      "tags": ["kubernetes", "go", "infrastructure", "multi-tenant", "devops"]
+    },
+    {
+      "name": "datum-gtm",
+      "source": "./datum-gtm",
+      "description": "Go-to-market automation with commercial strategy, product discovery, and customer support",
+      "version": "1.0.0",
+      "category": "business",
+      "tags": ["gtm", "marketing", "product", "support", "commercial"]
+    }
+  ]
+}

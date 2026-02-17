@@ -1,3 +1,21 @@
 {
-
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(done)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(head:*)",
+      "WebSearch",
+      "Bash(xargs:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(chmod:*)",
+      "Bash(tree:*)"
+    ]
+  }
 }

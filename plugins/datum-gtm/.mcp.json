@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "gh",
+      "args": ["mcp", "serve"],
+      "env": {
+        "GH_TOKEN": "${GH_TOKEN}"
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "datum-platform",
+  "description": "Kubernetes platform engineering automation with aggregated API servers, controller patterns, GitOps deployment, and platform capabilities",
+  "version": "1.0.0",
+  "author": {
+    "name": "Datum Cloud",
+    "url": "https://github.com/datum-cloud"
+  },
+  "repository": "https://github.com/datum-cloud/claude-code-plugins",
+  "license": "MIT",
+  "keywords": [
+    "kubernetes",
+    "api-server",
+    "controller-runtime",
+    "fluxcd",
+    "kustomize",
+    "go",
+    "platform-engineering",
+    "multi-tenant"
+  ]
+}
