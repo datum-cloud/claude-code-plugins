@@ -6,7 +6,8 @@ A marketplace for Claude Code plugins providing platform engineering tools and a
 
 | Plugin | Description | Version |
 |--------|-------------|---------|
-| [datum-cloud](./plugins/datum-cloud/) | Kubernetes-based cloud infrastructure development automation | 1.0.0 |
+| [datum-platform](./plugins/datum-platform/) | Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment | 1.0.0 |
+| [datum-gtm](./plugins/datum-gtm/) | Go-to-market automation with commercial strategy, product discovery, and customer support | 1.0.0 |
 
 ## Installation
 
@@ -37,7 +38,8 @@ Or add to your `.claude/settings.json`:
 Once the marketplace is added, install plugins by name:
 
 ```bash
-/plugin install datum-cloud@claude-code-plugins
+/plugin install datum-platform@datum-claude-code-plugins
+/plugin install datum-gtm@datum-claude-code-plugins
 ```
 
 ### Local Development
@@ -45,7 +47,8 @@ Once the marketplace is added, install plugins by name:
 For local development, run Claude Code with the plugin directory:
 
 ```bash
-claude --plugin-dir /path/to/claude-code-marketplace/plugins/datum-cloud
+claude --plugin-dir /path/to/claude-code-marketplace/plugins/datum-platform
+claude --plugin-dir /path/to/claude-code-marketplace/plugins/datum-gtm
 ```
 
 ## Marketplace Structure
@@ -55,35 +58,56 @@ claude-code-plugins/
 ├── .claude-plugin/
 │   └── marketplace.json        # Marketplace catalog
 ├── plugins/
-│   └── datum-cloud/            # Individual plugin
+│   ├── datum-platform/         # Platform engineering plugin
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json     # Plugin manifest
+│   │   ├── .mcp.json           # MCP server configuration
+│   │   ├── agents/             # Specialized agents
+│   │   ├── skills/             # Knowledge modules
+│   │   ├── commands/           # Slash commands
+│   │   ├── hooks/              # Automation hooks
+│   │   └── scripts/            # Utility scripts
+│   └── datum-gtm/              # Go-to-market plugin
 │       ├── .claude-plugin/
 │       │   └── plugin.json     # Plugin manifest
-│       ├── .mcp.json           # MCP server configuration
 │       ├── agents/             # Specialized agents
 │       ├── skills/             # Knowledge modules
-│       ├── commands/           # Slash commands
-│       ├── hooks/              # Automation hooks
-│       └── scripts/            # Utility scripts
+│       └── commands/           # Slash commands
 └── README.md
 ```
 
 ## Plugins
 
-### datum-cloud
+### datum-platform
 
-Kubernetes-based cloud infrastructure development automation with specialized agents, skills, and pipeline orchestration for the Datum Cloud platform.
+Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment for the Datum Cloud platform.
 
 **Features:**
-- 10 specialized agents (api-dev, frontend-dev, sre, test-engineer, code-reviewer, tech-writer, product-discovery, commercial-strategist, gtm-comms, support-triage)
-- 17+ skill modules covering Kubernetes patterns, Go conventions, deployment workflows
+- 6 specialized agents (api-dev, frontend-dev, sre, test-engineer, code-reviewer, tech-writer)
+- 24 skill modules covering Kubernetes patterns, Go conventions, deployment workflows, and more
 - Pipeline orchestration for structured feature development
 - Automatic learning engine for pattern extraction
 - MCP integration for kubectl and GitHub CLI
 
 **Category:** Platform Engineering
-**Tags:** kubernetes, go, infrastructure, multi-tenant
+**Tags:** kubernetes, go, infrastructure, multi-tenant, devops
 
-[View full documentation](./plugins/datum-cloud/)
+[View full documentation](./plugins/datum-platform/)
+
+### datum-gtm
+
+Go-to-market automation with commercial strategy, product discovery, and customer support tools.
+
+**Features:**
+- 4 specialized agents (product-discovery, commercial-strategist, gtm-comms, support-triage)
+- 3 skill modules for GTM workflows
+- Commercial strategy and pricing analysis
+- Customer support triage automation
+
+**Category:** Business
+**Tags:** gtm, marketing, product, support, commercial
+
+[View full documentation](./plugins/datum-gtm/)
 
 ## Contributing
 
