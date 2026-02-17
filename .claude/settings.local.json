@@ -1,8 +1,0 @@
-{
-  "plugins": [
-    {
-      "name": "datum-cloud",
-      "url": "file:///Users/scotwells/repos/datum-cloud/claude-code-plugin"
-    }
-  ]
-}
