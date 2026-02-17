@@ -121,23 +121,40 @@ After completing the review, append each finding to `.claude/review-findings.jso
 {
   "date": "YYYY-MM-DD",
   "pr": "NUMBER",
+  "service": "SERVICE_NAME",
   "category": "security|correctness|convention|completeness|performance",
   "file": "FILE:LINE",
   "finding": "DESCRIPTION",
   "severity": "blocking|warning|nit",
-  "pattern": "PATTERN_NAME or null"
+  "pattern": "PATTERN_NAME",
+  "suggested_fix": "HOW_TO_FIX"
 }
 ```
 
-Pattern names should be reusable identifiers:
-- `missing-status-condition`
-- `unvalidated-input`
-- `storage-init-race`
-- `missing-deepcopy-tag`
-- `tenant-isolation-gap`
-- `missing-error-context`
+**IMPORTANT**: Always include a `pattern` name. The learning engine uses pattern names to:
+- Track occurrence frequency across services
+- Detect trends (increasing/decreasing)
+- Auto-promote patterns to runbooks
+- Alert when patterns spread to new services
 
-This log feeds the automated learning system. Consistent pattern naming helps identify recurring issues.
+Pattern names should be reusable kebab-case identifiers:
+
+| Pattern | Use When |
+|---------|----------|
+| `missing-status-condition` | Status conditions not updated |
+| `unvalidated-input` | Missing input validation |
+| `storage-init-race` | Storage initialization race |
+| `missing-deepcopy-tag` | Kubernetes types missing deepcopy |
+| `tenant-isolation-gap` | Multi-tenant isolation issue |
+| `missing-error-context` | Errors without context wrapping |
+| `nil-dereference` | Potential nil pointer |
+| `hardcoded-value` | Magic numbers or hardcoded strings |
+| `concurrency-race` | Race condition detected |
+| `unhandled-error` | Error not checked |
+
+See `learning-engine/schemas.md` for the full schema and pattern naming conventions.
+
+This log feeds the automated learning system. Run `/evolve` to analyze patterns and update runbooks.
 
 ## Output Format
 

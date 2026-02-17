@@ -106,6 +106,7 @@ Skills provide reusable knowledge that agents reference during their work.
 | `pipeline-conductor` | Feature development pipeline orchestration |
 | `gtm-templates` | Document templates for announcements and releases |
 | `runbooks` | Accumulated learnings and operational procedures |
+| `learning-engine` | Automatic pattern extraction and runbook updates |
 
 ## Pipeline Workflow
 
@@ -162,6 +163,34 @@ handoff:
 
 This ensures downstream agents understand context, decisions, and open questions without re-discovery.
 
+### Automatic Learning
+
+The plugin includes an automatic learning engine that extracts patterns from review findings and promotes them to agent runbooks.
+
+**Learning Commands:**
+
+| Command | Description |
+|---------|-------------|
+| `/evolve` | Analyze findings, extract patterns, update runbooks |
+| `/patterns` | View pattern statistics and occurrences |
+| `/trends` | View pattern trends and alerts |
+
+**How it works:**
+
+1. `code-reviewer` logs findings to `.claude/review-findings.jsonl` with pattern names
+2. Agents log session learnings to `.claude/session-learnings.jsonl`
+3. `/evolve` analyzes findings, calculates confidence scores, and detects trends
+4. High-confidence patterns (>= 0.6, >= 3 occurrences) are auto-promoted to runbooks
+5. Agents read updated runbooks in subsequent sessions
+
+**Pattern tracking:**
+
+```
+findings → pattern detection → frequency analysis → confidence scoring → runbook updates
+```
+
+This creates a feedback loop where review findings automatically become agent knowledge.
+
 ## Directory Structure
 
 ```
@@ -185,6 +214,11 @@ claude-code-plugin/
 │   │   ├── SKILL.md
 │   │   ├── handoff-format.md  # Handoff header schema
 │   │   └── templates/         # Artifact templates
+│   ├── learning-engine/       # Automatic learning system
+│   │   ├── SKILL.md           # Overview
+│   │   ├── analysis.md        # Pattern analysis algorithms
+│   │   ├── promotion.md       # Runbook promotion rules
+│   │   └── schemas.md         # JSON schemas
 │   └── ...
 └── .claude/
     └── settings.local.json  # Permission configuration

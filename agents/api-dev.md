@@ -20,11 +20,13 @@ Before doing any work, gather context in this order:
 
 1. Read `CLAUDE.md` for project context (module path, API group, build commands)
 2. Read the design in `.claude/pipeline/designs/{id}.md` if this is a pipeline feature
+   - **Check handoff header** for `decisions_made` and `open_questions`
 3. Read `.claude/service-profile.md` for platform integration requirements
 4. Read `k8s-apiserver-patterns/SKILL.md` for storage and type patterns
 5. Read `k8s-apiserver-patterns/architecture-decision.md` to understand why aggregated API servers vs CRDs
 6. Read `go-conventions/SKILL.md` for code style
 7. Read your runbook at `.claude/skills/runbooks/api-dev/RUNBOOK.md` — this contains critical lessons from past implementations
+8. Read `.claude/patterns/patterns.json` — check for high-confidence patterns to avoid
 
 ## Workflow
 
@@ -155,6 +157,28 @@ Before considering implementation complete:
 
 **Capability integration is unclear**: Read the capability skill's `implementation.md` thoroughly. Run the validation script to see what's missing.
 
+## Session Learning
+
+When you discover a reusable insight during implementation, log it:
+
+```bash
+# Append to .claude/session-learnings.jsonl
+{
+  "date": "YYYY-MM-DD",
+  "agent": "api-dev",
+  "feature_id": "feat-XXX",
+  "type": "pattern|anti-pattern|tip",
+  "name": "descriptive-kebab-case-name",
+  "description": "What you learned",
+  "context": "When this applies",
+  "code_example": "func example() { ... }",
+  "confidence": "high|medium|low",
+  "applicable_to": ["api-dev", "test-engineer"]
+}
+```
+
+This feeds the learning engine. Run `/evolve` to analyze learnings and update runbooks.
+
 ## Skills to Reference
 
 - `k8s-apiserver-patterns` — Aggregated API server: storage, types, server config, validation
@@ -162,3 +186,4 @@ Before considering implementation complete:
 - `go-conventions` — Testing, errors, imports, code style
 - `milo-iam` — ProtectedResource, Roles, PolicyBinding, permission inheritance
 - `capability-*` — Integration patterns for each platform capability
+- `learning-engine` — Pattern registry and session learning schemas
