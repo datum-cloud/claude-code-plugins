@@ -8,7 +8,8 @@ description: >
   underlying problem. Use when someone says "we should build X" and nobody
   has asked "why?" yet. Do NOT use when requirements are already clear —
   use product-planner instead.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash(git *), WebSearch, WebFetch
+disallowedTools: Write, Edit, NotebookEdit
 model: opus
 permissionMode: plan
 ---

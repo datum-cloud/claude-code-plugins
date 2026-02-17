@@ -23,6 +23,10 @@ Quick-start code review with automatic context loading from the pipeline.
 /review --diff <base>       Review diff against a specific base branch
 ```
 
+## Arguments
+
+Feature ID or diff options: $ARGUMENTS
+
 ## Workflow
 
 ### `/review` (current branch)

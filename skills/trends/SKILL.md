@@ -22,6 +22,10 @@ Analyze pattern trends and generate actionable insights.
 /trends --service <name>      Show trends for specific service
 ```
 
+## Arguments
+
+Options: $ARGUMENTS
+
 ## Workflow
 
 ### `/trends` (default)

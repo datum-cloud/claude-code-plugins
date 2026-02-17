@@ -26,6 +26,10 @@ Extracts patterns from accumulated findings and evolves agent runbooks with lear
 /evolve --agent <name>     Only update runbooks for specific agent
 ```
 
+## Arguments
+
+Options: $ARGUMENTS
+
 ## Workflow
 
 ### Phase 1: Data Collection

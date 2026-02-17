@@ -23,6 +23,10 @@ View pattern statistics and insights from the learning engine.
 /patterns <pattern-name>      Show details for specific pattern
 ```
 
+## Arguments
+
+Pattern name or filter options: $ARGUMENTS
+
 ## Workflow
 
 ### `/patterns` (default)

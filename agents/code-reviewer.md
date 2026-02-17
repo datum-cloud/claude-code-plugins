@@ -6,7 +6,8 @@ description: >
   or "check this code" or "is this ready to merge." Reviews for correctness,
   security, convention compliance, and platform integration completeness.
   Read-only — produces findings, never modifies code.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash(git *), Bash(go *), Bash(./skills/*/scripts/*)
+disallowedTools: Write, Edit, NotebookEdit
 model: opus
 permissionMode: plan
 ---

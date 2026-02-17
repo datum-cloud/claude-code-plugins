@@ -7,7 +7,8 @@ description: >
   Use when someone asks "how should we price this" or "what tier should
   this be in" or "what should the quota limits be." Use BEFORE architect
   designs quota integrations.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash(git *), WebSearch, WebFetch
+disallowedTools: Write, Edit, NotebookEdit
 model: opus
 permissionMode: plan
 ---

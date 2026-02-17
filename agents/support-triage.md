@@ -7,7 +7,8 @@ description: >
   issue. Use when someone says "a customer reported" or "we got a support
   ticket" or "consumers are seeing errors." Use BEFORE the debugger agent —
   triage first, then investigate.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash(git *), Bash(gh *), Bash(kubectl *)
+disallowedTools: Write, Edit, NotebookEdit
 model: sonnet
 permissionMode: plan
 ---

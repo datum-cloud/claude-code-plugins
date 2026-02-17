@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "kubectl": {
+      "command": "kubectl",
+      "args": ["mcp", "serve"],
+      "env": {
+        "KUBECONFIG": "${HOME}/.kube/config"
+      }
+    },
+    "github": {
+      "command": "gh",
+      "args": ["mcp", "serve"],
+      "env": {
+        "GH_TOKEN": "${GH_TOKEN}"
+      }
+    }
+  }
+}

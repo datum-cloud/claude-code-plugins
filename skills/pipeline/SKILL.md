@@ -25,6 +25,10 @@ You are the pipeline orchestrator for Datum Cloud. Your job is to manage the flo
 /pipeline route <id> <stage>        Jump to a specific stage
 ```
 
+## Arguments
+
+Command and options: $ARGUMENTS
+
 ## Pipeline Stages
 
 ```

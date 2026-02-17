@@ -1,6 +1,7 @@
 ---
 name: capability-index
 description: Decision framework for determining which platform capabilities a feature needs (Quota, Insights, Telemetry, Activity). Use when planning a new feature to assess which capabilities apply.
+user-invocable: false
 ---
 
 # Capability Index

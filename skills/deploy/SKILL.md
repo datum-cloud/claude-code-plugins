@@ -23,6 +23,10 @@ Orchestrate deployment through the pipeline with proper gates and validation.
 /deploy <feature-id> --hotfix         Abbreviated pipeline for urgent fixes
 ```
 
+## Arguments
+
+Feature ID: $ARGUMENTS
+
 ## Prerequisites
 
 Before deployment:
