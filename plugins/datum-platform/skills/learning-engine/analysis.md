@@ -15,6 +15,9 @@ cat .claude/review-findings.jsonl
 # Session learnings from any agent
 cat .claude/session-learnings.jsonl
 
+# User corrections from all agents
+cat .claude/user-corrections.jsonl
+
 # Incident reports (if tracking production issues)
 cat .claude/incidents.jsonl
 ```
@@ -26,7 +29,8 @@ Convert all findings to a common format:
 ```json
 {
   "id": "unique-id",
-  "source": "review|session|incident",
+  "source": "review|session|incident|correction",
+  "source_type": "explicit_user_correction|implicit_user_correction|blocking_review|warning_review|session_learning|nit_review",
   "date": "ISO-8601",
   "agent": "agent-name",
   "service": "service-name",
@@ -39,6 +43,19 @@ Convert all findings to a common format:
   "pr": "PR number if applicable"
 }
 ```
+
+### Source Type Mapping
+
+Map raw data sources to source types with weights:
+
+| Data Source | Source Type | Weight |
+|-------------|-------------|--------|
+| user-corrections.jsonl (explicit) | `explicit_user_correction` | 1.0 |
+| user-corrections.jsonl (implicit) | `implicit_user_correction` | 0.8 |
+| review-findings.jsonl (blocking) | `blocking_review` | 0.7 |
+| review-findings.jsonl (warning) | `warning_review` | 0.5 |
+| session-learnings.jsonl | `session_learning` | 0.4 |
+| review-findings.jsonl (nit) | `nit_review` | 0.3 |
 
 ### Step 3: Group by Pattern
 
@@ -167,23 +184,58 @@ def calculate_confidence(pattern):
     service_count = len(pattern.services)
     consistency_score = min(service_count / 3, 1.0)
 
-    # Weighted average
-    weights = {
-        "occurrence": 0.4,
-        "severity": 0.3,
-        "recency": 0.2,
-        "consistency": 0.1
-    }
+    # Source quality score: weight by data source reliability
+    source_quality_score = calculate_source_quality(pattern)
 
+    # Weighted average with source quality
     confidence = (
-        weights["occurrence"] * occurrence_score +
-        weights["severity"] * severity_score +
-        weights["recency"] * recency_score +
-        weights["consistency"] * consistency_score
+        0.35 * occurrence_score +
+        0.25 * severity_score +
+        0.15 * recency_score +
+        0.10 * consistency_score +
+        0.15 * source_quality_score
     )
 
     return round(confidence, 2)
+
+
+def calculate_source_quality(pattern):
+    """Calculate weighted average of source quality across occurrences."""
+    source_weights = {
+        "explicit_user_correction": 1.0,
+        "implicit_user_correction": 0.8,
+        "blocking_review": 0.7,
+        "warning_review": 0.5,
+        "session_learning": 0.4,
+        "nit_review": 0.3
+    }
+
+    total_weight = 0
+    weighted_sum = 0
+
+    for source_type, count in pattern.source_breakdown.items():
+        weight = source_weights.get(source_type, 0.5)
+        weighted_sum += weight * count
+        total_weight += count
+
+    if total_weight == 0:
+        return 0.5  # Default for patterns without source tracking
+
+    return weighted_sum / total_weight
 ```
+
+### Source Quality Weights
+
+User corrections receive the highest weight because they represent direct feedback:
+
+| Source Type | Weight | Rationale |
+|-------------|--------|-----------|
+| `explicit_user_correction` | 1.0 | User directly corrected Claude |
+| `implicit_user_correction` | 0.8 | User action implies correction |
+| `blocking_review` | 0.7 | Reviewer identified blocking issue |
+| `warning_review` | 0.5 | Reviewer identified notable issue |
+| `session_learning` | 0.4 | Agent self-observed pattern |
+| `nit_review` | 0.3 | Minor convention finding |
 
 ### Confidence Thresholds
 
@@ -193,6 +245,90 @@ def calculate_confidence(pattern):
 | 0.6 - 0.8 | Medium confidence | Promote to runbook draft, suggest in reviews |
 | 0.4 - 0.6 | Low confidence | Track, don't promote yet |
 | 0.0 - 0.4 | Very low | May be noise, continue tracking |
+
+## Correction Merging
+
+User corrections are merged with review findings during pattern analysis:
+
+### Merging Algorithm
+
+```python
+def merge_corrections_with_findings(findings, corrections):
+    """Merge user corrections into the findings stream."""
+    merged = []
+
+    # Add all findings with source type
+    for finding in findings:
+        finding["source_type"] = map_finding_source_type(finding)
+        merged.append(finding)
+
+    # Convert corrections to finding format
+    for correction in corrections:
+        merged.append({
+            "id": f"correction-{correction.timestamp}",
+            "source": "correction",
+            "source_type": f"{correction.source}_user_correction",
+            "date": correction.date,
+            "agent": correction.agent,
+            "service": correction.context.get("service"),
+            "category": map_correction_category(correction.correction_type),
+            "severity": correction.severity,
+            "pattern": correction.pattern_inferred,
+            "file": correction.ai_action.get("file"),
+            "description": correction.user_correction.summary,
+            "context": correction.context.get("task")
+        })
+
+    return merged
+
+
+def map_correction_category(correction_type):
+    """Map correction types to pattern categories."""
+    mapping = {
+        "code_quality": "correctness",
+        "code_completeness": "completeness",
+        "approach_rejection": "convention",
+        "expectation_mismatch": "convention",
+        "communication_gap": "convention",
+        "preference_conflict": "convention"
+    }
+    return mapping.get(correction_type, "convention")
+```
+
+### Pattern Matching Across Sources
+
+When the same pattern appears in both corrections and findings:
+
+1. **Combine occurrences** — Merge occurrence lists
+2. **Track source breakdown** — Count by source type
+3. **Boost confidence** — Patterns from multiple sources are more reliable
+4. **Prefer user wording** — Use correction descriptions when clearer
+
+```python
+def combine_pattern_sources(pattern_from_findings, pattern_from_corrections):
+    """Combine patterns found in both sources."""
+    combined = pattern_from_findings.copy()
+
+    # Merge occurrences
+    combined["occurrences"].extend(pattern_from_corrections["occurrences"])
+    combined["count"] = len(combined["occurrences"])
+
+    # Update source breakdown
+    for source_type, count in pattern_from_corrections["source_breakdown"].items():
+        combined["source_breakdown"][source_type] = (
+            combined["source_breakdown"].get(source_type, 0) + count
+        )
+
+    # Use correction description if more specific
+    if len(pattern_from_corrections["description"]) > len(combined["description"]):
+        combined["description"] = pattern_from_corrections["description"]
+
+    # Recalculate confidence with updated data
+    combined["confidence"] = calculate_confidence(combined)
+    combined["source_quality_score"] = calculate_source_quality(combined)
+
+    return combined
+```
 
 ## Cross-Service Analysis
 

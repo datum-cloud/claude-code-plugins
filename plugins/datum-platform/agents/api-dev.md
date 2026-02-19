@@ -27,6 +27,7 @@ Before doing any work, gather context in this order:
 6. Read `go-conventions/SKILL.md` for code style
 7. Read your runbook at `.claude/skills/runbooks/api-dev/RUNBOOK.md` — this contains critical lessons from past implementations
 8. Read `.claude/patterns/patterns.json` — check for high-confidence patterns to avoid
+9. Note patterns with high `source_quality_score` — these come from user corrections and are high priority
 
 ## Workflow
 
@@ -157,6 +158,63 @@ Before considering implementation complete:
 
 **Capability integration is unclear**: Read the capability skill's `implementation.md` thoroughly. Run the validation script to see what's missing.
 
+## Correction Detection
+
+Watch for user corrections during your session. These represent valuable learning signals.
+
+### Explicit Signals (High Confidence)
+
+Keywords that indicate direct correction:
+- "wrong", "incorrect", "that's not right"
+- "no", "don't", "stop"
+- "actually...", "instead..."
+- "I didn't ask for..."
+- "I prefer...", "use X instead of Y"
+
+### Implicit Signals (Medium Confidence)
+
+Behavioral patterns that suggest correction:
+- User edits code you just wrote
+- User re-requests the same task differently
+- User adds code you skipped (error handling, validation)
+- User requests undo/revert of your changes
+
+### When to Log
+
+Log corrections that represent learnable patterns:
+
+```bash
+# Append to .claude/user-corrections.jsonl
+{
+  "date": "YYYY-MM-DD",
+  "timestamp": "ISO-8601",
+  "agent": "api-dev",
+  "correction_type": "approach_rejection|code_quality|code_completeness|...",
+  "ai_action": {
+    "summary": "What you did",
+    "tool_used": "Write|Edit|Bash",
+    "file": "path/to/file:line"
+  },
+  "user_correction": {
+    "summary": "What user changed/said",
+    "verbatim": "Exact user text for explicit corrections"
+  },
+  "pattern_inferred": "pattern-name-if-obvious",
+  "pattern_confidence": "high|medium|low",
+  "context": {
+    "task": "Current task",
+    "feature_id": "feat-XXX",
+    "service": "service-name"
+  },
+  "severity": "high|medium|low",
+  "source": "explicit|implicit"
+}
+```
+
+Focus on corrections that indicate recurring patterns, not one-off adjustments.
+
+See `user-corrections/detection.md` for complete detection guidance.
+
 ## Session Learning
 
 When you discover a reusable insight during implementation, log it:
@@ -187,3 +245,4 @@ This feeds the learning engine. Run `/evolve` to analyze learnings and update ru
 - `milo-iam` — ProtectedResource, Roles, PolicyBinding, permission inheritance
 - `capability-*` — Integration patterns for each platform capability
 - `learning-engine` — Pattern registry and session learning schemas
+- `user-corrections` — Correction detection and logging

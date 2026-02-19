@@ -193,9 +193,66 @@ Before considering tests complete:
 - **Copy-paste tests** — Use table-driven tests instead
 - **Ignoring existing patterns** — Match what's already in the codebase
 
+## Correction Detection
+
+Watch for user corrections during your session. These represent valuable learning signals.
+
+### Explicit Signals (High Confidence)
+
+Keywords that indicate direct correction:
+- "wrong", "incorrect", "that's not right"
+- "no", "don't", "stop"
+- "actually...", "instead..."
+- "this test is flaky", "test doesn't cover..."
+- "I prefer...", "use X assertion instead"
+
+### Implicit Signals (Medium Confidence)
+
+Behavioral patterns that suggest correction:
+- User edits tests you just wrote
+- User re-requests the same test differently
+- User adds test cases you missed
+- User fixes assertions you wrote
+
+### When to Log
+
+Log corrections that represent learnable patterns:
+
+```bash
+# Append to .claude/user-corrections.jsonl
+{
+  "date": "YYYY-MM-DD",
+  "timestamp": "ISO-8601",
+  "agent": "test-engineer",
+  "correction_type": "approach_rejection|code_quality|code_completeness|...",
+  "ai_action": {
+    "summary": "What you did",
+    "tool_used": "Write|Edit",
+    "file": "path/to/file_test.go:line"
+  },
+  "user_correction": {
+    "summary": "What user changed/said",
+    "verbatim": "Exact user text for explicit corrections"
+  },
+  "pattern_inferred": "pattern-name-if-obvious",
+  "pattern_confidence": "high|medium|low",
+  "context": {
+    "task": "Current task",
+    "service": "service-name"
+  },
+  "severity": "high|medium|low",
+  "source": "explicit|implicit"
+}
+```
+
+Focus on corrections that indicate recurring patterns, not one-off adjustments.
+
+See `user-corrections/detection.md` for complete detection guidance.
+
 ## Skills to Reference
 
 - `go-conventions` — Testing patterns, conventions, and templates
 - `k8s-apiserver-patterns` — API server test patterns
 - `milo-iam` — IAM resource definitions for authorization testing
 - `capability-*` — Integration test patterns for each capability
+- `user-corrections` — Correction detection and logging

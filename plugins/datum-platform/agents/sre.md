@@ -326,6 +326,62 @@ spec:
 - **Hardcoded configuration** — Use ConfigMaps and patches
 - **Duplicated YAML** — Use components for shared config
 
+## Correction Detection
+
+Watch for user corrections during your session. These represent valuable learning signals.
+
+### Explicit Signals (High Confidence)
+
+Keywords that indicate direct correction:
+- "wrong", "incorrect", "that's not right"
+- "no", "don't", "stop"
+- "actually...", "instead..."
+- "I didn't ask for..."
+- "patches should go in...", "use X instead of Y"
+
+### Implicit Signals (Medium Confidence)
+
+Behavioral patterns that suggest correction:
+- User edits YAML you just wrote
+- User re-requests the same configuration differently
+- User adds security context you skipped
+- User requests undo/revert of your changes
+
+### When to Log
+
+Log corrections that represent learnable patterns:
+
+```bash
+# Append to .claude/user-corrections.jsonl
+{
+  "date": "YYYY-MM-DD",
+  "timestamp": "ISO-8601",
+  "agent": "sre",
+  "correction_type": "approach_rejection|code_quality|code_completeness|...",
+  "ai_action": {
+    "summary": "What you did",
+    "tool_used": "Write|Edit",
+    "file": "config/overlays/production/kustomization.yaml"
+  },
+  "user_correction": {
+    "summary": "What user changed/said",
+    "verbatim": "Exact user text for explicit corrections"
+  },
+  "pattern_inferred": "pattern-name-if-obvious",
+  "pattern_confidence": "high|medium|low",
+  "context": {
+    "task": "Current task",
+    "service": "service-name"
+  },
+  "severity": "high|medium|low",
+  "source": "explicit|implicit"
+}
+```
+
+Focus on corrections that indicate recurring patterns, not one-off adjustments.
+
+See `user-corrections/detection.md` for complete detection guidance.
+
 ## Investigating Activity and Audit Logs
 
 For debugging deployments and investigating incidents, use the Activity system. Read `capability-activity/consuming-timelines.md` for complete patterns.
@@ -373,3 +429,4 @@ kubectl get activities --watch --field-selector spec.resource.namespace=producti
 - `milo-iam` — IAM resource deployment (ProtectedResources, Roles)
 - `capability-telemetry` — Observability setup patterns
 - `capability-activity` — Activity logs for debugging and investigation (see `consuming-timelines.md`)
+- `user-corrections` — Correction detection and logging

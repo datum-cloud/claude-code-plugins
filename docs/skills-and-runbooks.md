@@ -10,6 +10,7 @@ Skills are knowledge modules that agents read during their context discovery pha
 - [Running /evolve](#running-evolve)
 - [Viewing Patterns](#viewing-patterns)
 - [Viewing Trends](#viewing-trends)
+- [Viewing Corrections](#viewing-corrections)
 
 ---
 
@@ -35,6 +36,7 @@ Skills are knowledge modules that agents read during their context discovery pha
 | `design-tokens` | Frontend token architecture and pattern registry |
 | `pipeline-conductor` | Pipeline stages, handoff format, templates |
 | `learning-engine` | Pattern extraction and runbook promotion |
+| `user-corrections` | User correction detection and logging |
 
 **Skills in `datum-gtm`:**
 
@@ -76,21 +78,24 @@ Each runbook contains:
 
 ## The Learning Loop
 
-The learning system feeds on two sources:
+The learning system feeds on three sources:
 
 1. **Review findings**: Every code-reviewer finding logged to `.claude/review-findings.jsonl` with a structured pattern name
 2. **Session learnings**: Any agent can log insights to `.claude/session-learnings.jsonl` during implementation
+3. **User corrections**: When users correct agent outputs, agents log to `.claude/user-corrections.jsonl`
 
 ```mermaid
 flowchart LR
     subgraph Input Sources
         review[Code Review] --> findings[review-findings.jsonl]
         agents[Any Agent] --> learnings[session-learnings.jsonl]
+        user[User Corrections] --> corrections[user-corrections.jsonl]
     end
 
     subgraph Analysis
         findings --> evolve[/evolve command]
         learnings --> evolve
+        corrections --> evolve
         evolve --> patterns[Pattern Analysis]
     end
 
@@ -100,12 +105,29 @@ flowchart LR
     end
 
     future -.->|improved behavior| review
+    future -.->|fewer corrections| user
 
     style evolve fill:#ff9,stroke:#333
     style runbooks fill:#9f9,stroke:#333
+    style corrections fill:#f9f,stroke:#333
 ```
 
-The cycle is self-improving: review findings become patterns, patterns update runbooks, and agents reading runbooks produce fewer findings.
+The cycle is self-improving: findings and corrections become patterns, patterns update runbooks, and agents reading runbooks produce fewer findings and need fewer corrections.
+
+### Source Quality Weighting
+
+Not all learning sources are equal. User corrections carry the highest weight because they represent direct feedback:
+
+| Source | Weight | Description |
+|:-------|:-------|:------------|
+| Explicit user correction | 1.0 | User directly stated what was wrong |
+| Implicit user correction | 0.8 | User edited code or re-requested differently |
+| Blocking review finding | 0.7 | Code reviewer flagged a blocking issue |
+| Warning review finding | 0.5 | Code reviewer flagged a warning |
+| Session learning | 0.4 | Agent self-reported insight |
+| Nit review finding | 0.3 | Minor convention issue |
+
+These weights affect how quickly patterns reach the promotion threshold.
 
 ### Finding Format
 
@@ -283,3 +305,59 @@ STABLE:
 ```
 
 Trends highlight patterns that are increasing (need attention) and patterns that are resolving (team improvement to recognize).
+
+---
+
+## Viewing Corrections
+
+```bash
+/corrections                          # Recent corrections summary
+/corrections --agent api-dev          # Corrections for specific agent
+/corrections --type approach_rejection # Corrections of specific type
+/corrections --analyze                # Extract patterns from corrections
+```
+
+User corrections are logged when agents detect that users are correcting their outputs — either through explicit statements ("that's wrong", "use X instead") or implicit actions (user edits code the agent just wrote).
+
+### Example Output
+
+```
+USER CORRECTIONS (last 30 days)
+═══════════════════════════════════════════════════════════════
+
+Total: 24 corrections
+
+BY TYPE:
+  code_quality         8   (33%)  User fixed bugs or logic errors
+  code_completeness    6   (25%)  User added code agent missed
+  approach_rejection   4   (17%)  User rejected overall approach
+  preference_conflict  3   (12%)  User preferred different pattern
+  expectation_mismatch 2   (8%)   Agent did something unexpected
+  communication_gap    1   (4%)   Agent misunderstood request
+
+BY AGENT:
+  api-dev             12   (50%)
+  frontend-dev         7   (29%)
+  sre                  3   (12%)
+  test-engineer        2   (8%)
+
+TOP INFERRED PATTERNS:
+  use-existing-patterns      4 occurrences  (high confidence)
+  missing-error-context      3 occurrences  (high confidence)
+  scope-creep                2 occurrences  (medium confidence)
+```
+
+### Correction Types
+
+| Type | Description |
+|:-----|:------------|
+| `code_quality` | User fixes bugs, style, or logic errors in agent output |
+| `code_completeness` | User adds code the agent missed (error handling, validation) |
+| `approach_rejection` | User rejects the overall approach and requests alternative |
+| `expectation_mismatch` | Agent did something the user didn't ask for |
+| `communication_gap` | Agent misunderstood the request |
+| `preference_conflict` | User prefers a different pattern or style |
+
+### Integration with /evolve
+
+When you run `/evolve`, corrections are analyzed alongside review findings and session learnings. Because user corrections carry higher source weight (1.0 for explicit, 0.8 for implicit), patterns from corrections reach the promotion threshold faster than patterns from code review nits.

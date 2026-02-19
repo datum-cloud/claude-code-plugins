@@ -23,6 +23,7 @@ findings → pattern detection → frequency analysis → confidence scoring →
 ├─────────────────────────────────────────────────────────────┤
 │  .claude/review-findings.jsonl    (code-reviewer output)    │
 │  .claude/session-learnings.jsonl  (any agent learnings)     │
+│  .claude/user-corrections.jsonl   (user correction signals) │
 │  .claude/incidents.jsonl          (production incidents)    │
 └─────────────────────────────────────────────────────────────┘
                             │
@@ -53,6 +54,7 @@ findings → pattern detection → frequency analysis → confidence scoring →
 | `/evolve` | Analyze findings and update runbooks |
 | `/patterns` | Show top patterns with statistics |
 | `/trends` | Show pattern trends over time |
+| `/corrections` | Show user correction statistics |
 
 ## Pattern Schema
 
@@ -101,23 +103,42 @@ Pattern confidence is calculated as:
 
 ```
 confidence = (
-  occurrence_weight * min(count / 10, 1.0) +
-  severity_weight * severity_score +
-  recency_weight * recency_score +
-  consistency_weight * consistency_score
-) / total_weight
+  0.35 * occurrence_score +
+  0.25 * severity_score +
+  0.15 * recency_score +
+  0.10 * consistency_score +
+  0.15 * source_quality_score
+)
 
 Where:
-- occurrence_weight = 0.4 (how often it appears)
-- severity_weight = 0.3 (blocking > warning > nit)
-- recency_weight = 0.2 (recent patterns weighted higher)
-- consistency_weight = 0.1 (appears across multiple services)
+- occurrence_score = min(count / 10, 1.0) (how often it appears)
+- severity_score = weighted average by severity (blocking > warning > nit)
+- recency_score = patterns seen recently weighted higher
+- consistency_score = appears across multiple services/agents
+- source_quality_score = weighted by data source quality
 ```
 
 Severity scores:
 - blocking: 1.0
 - warning: 0.6
 - nit: 0.3
+
+## Source Quality Weighting
+
+Different data sources have different reliability weights:
+
+| Source | Weight | Description |
+|--------|--------|-------------|
+| `explicit_user_correction` | 1.0 | User directly stated correction |
+| `implicit_user_correction` | 0.8 | Correction inferred from user action |
+| `blocking_review` | 0.7 | Code reviewer blocking finding |
+| `warning_review` | 0.5 | Code reviewer warning finding |
+| `session_learning` | 0.4 | Agent self-reported learning |
+| `nit_review` | 0.3 | Code reviewer nit finding |
+
+The `source_quality_score` for a pattern is calculated as the weighted average of all occurrences by their source quality.
+
+User corrections receive higher weight because they represent direct feedback from the user about what Claude did wrong. This ensures patterns learned from corrections are prioritized in runbook promotion.
 
 ## Auto-Promotion Rules
 
@@ -243,3 +264,10 @@ When promoting patterns to runbooks, use this format:
 | `analysis.md` | Pattern analysis algorithms |
 | `promotion.md` | Runbook promotion rules |
 | `schemas.md` | JSON schemas for data files |
+
+## Related Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `user-corrections` | User correction detection and logging |
+| `runbooks` | Where learned patterns are stored |

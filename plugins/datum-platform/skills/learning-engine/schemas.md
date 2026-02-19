@@ -2,6 +2,15 @@
 
 JSON schemas for all learning engine data files.
 
+## Data Source Files
+
+| File | Description | See Also |
+|------|-------------|----------|
+| `.claude/review-findings.jsonl` | Code reviewer findings | This file |
+| `.claude/session-learnings.jsonl` | Agent-contributed learnings | This file |
+| `.claude/user-corrections.jsonl` | User correction signals | `user-corrections/schemas.md` |
+| `.claude/incidents.jsonl` | Production incidents | This file |
+
 ## Review Findings Schema
 
 File: `.claude/review-findings.jsonl`
@@ -128,7 +137,8 @@ File: `.claude/patterns/patterns.json`
           "service": "compute-api",
           "file": "pkg/apis/vm/v1alpha1/types.go:142",
           "pr": "234",
-          "context": "VM resource missing Ready condition"
+          "context": "VM resource missing Ready condition",
+          "source": "blocking_review"
         }
       ],
       "count": 12,
@@ -136,6 +146,15 @@ File: `.claude/patterns/patterns.json`
       "last_seen": "2025-01-15",
       "trend": "stable|increasing|decreasing|new|resolved",
       "confidence": 0.85,
+      "source_breakdown": {
+        "explicit_user_correction": 2,
+        "implicit_user_correction": 1,
+        "blocking_review": 5,
+        "warning_review": 3,
+        "session_learning": 1,
+        "nit_review": 0
+      },
+      "source_quality_score": 0.68,
       "affected_agents": ["api-dev", "code-reviewer"],
       "affected_services": ["compute-api", "network-api"],
       "fix_template": "Add status condition update:\nmeta.SetStatusCondition(...)",
@@ -147,6 +166,7 @@ File: `.claude/patterns/patterns.json`
   "meta": {
     "last_analysis": "2025-01-15T10:30:00Z",
     "total_findings_analyzed": 142,
+    "total_corrections_analyzed": 24,
     "total_patterns": 23,
     "services_analyzed": ["compute-api", "network-api", "storage-api"],
     "analysis_window_days": 30
@@ -168,12 +188,27 @@ File: `.claude/patterns/patterns.json`
 | `last_seen` | string | Yes | Date most recently seen |
 | `trend` | enum | Yes | Current trend |
 | `confidence` | number | Yes | Confidence score (0.0-1.0) |
+| `source_breakdown` | object | No | Count of occurrences by source type |
+| `source_quality_score` | number | No | Weighted source quality (0.0-1.0) |
 | `affected_agents` | array | Yes | Agents involved |
 | `affected_services` | array | No | Services affected |
 | `fix_template` | string | No | How to fix |
 | `promoted_to_runbook` | boolean | No | Whether promoted |
 | `runbook_agents` | array | No | Agents with runbook entry |
 | `promoted_date` | string | No | When promoted |
+
+### Source Breakdown Object
+
+Tracks how many occurrences came from each data source:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `explicit_user_correction` | integer | Direct user corrections (weight: 1.0) |
+| `implicit_user_correction` | integer | Inferred user corrections (weight: 0.8) |
+| `blocking_review` | integer | Blocking code review findings (weight: 0.7) |
+| `warning_review` | integer | Warning code review findings (weight: 0.5) |
+| `session_learning` | integer | Agent session learnings (weight: 0.4) |
+| `nit_review` | integer | Nit code review findings (weight: 0.3) |
 
 ## Trends Schema
 

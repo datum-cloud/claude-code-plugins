@@ -42,41 +42,63 @@ Extracts patterns from accumulated findings and evolves agent runbooks with lear
    cat .claude/session-learnings.jsonl
    ```
 
-3. **Load existing pattern registry**
+3. **Load user corrections**
+   ```bash
+   # Read user correction signals
+   cat .claude/user-corrections.jsonl
+   ```
+
+4. **Load existing pattern registry**
    ```bash
    cat .claude/patterns/patterns.json
    ```
 
 ### Phase 2: Pattern Analysis
 
-For each finding:
+For each finding and correction:
 
-1. **Extract or infer pattern name**
-   - Use explicit `pattern` field if present
+1. **Assign source type and weight**
+   - User corrections (explicit): weight 1.0
+   - User corrections (implicit): weight 0.8
+   - Review findings (blocking): weight 0.7
+   - Review findings (warning): weight 0.5
+   - Session learnings: weight 0.4
+   - Review findings (nit): weight 0.3
+
+2. **Extract or infer pattern name**
+   - Use explicit `pattern` or `pattern_inferred` field if present
    - Otherwise infer from description keywords:
      - "missing validation" → `unvalidated-input`
      - "race condition" → `concurrency-race`
      - "status condition" → `missing-status-condition`
      - "nil pointer" → `nil-dereference`
      - "hardcoded" → `hardcoded-value`
+   - For corrections, also infer from correction type:
+     - `approach_rejection` → check for pattern keywords
+     - `code_completeness` → "missing-*" patterns
+     - `preference_conflict` → convention patterns
 
-2. **Group findings by pattern**
+3. **Group by pattern and track sources**
    - Count occurrences
+   - Track source breakdown (by source type)
    - Track affected services
    - Track affected agents
    - Collect code examples
 
-3. **Calculate confidence score**
+4. **Calculate confidence score with source weighting**
    ```
    confidence = (
-     0.4 * min(count/10, 1.0) +      # Occurrence frequency
-     0.3 * severity_score +           # Severity weight
-     0.2 * recency_score +            # Recent patterns matter more
-     0.1 * consistency_score          # Cross-service patterns
+     0.35 * min(count/10, 1.0) +     # Occurrence frequency
+     0.25 * severity_score +          # Severity weight
+     0.15 * recency_score +           # Recent patterns matter more
+     0.10 * consistency_score +       # Cross-service patterns
+     0.15 * source_quality_score      # Source reliability weight
    )
+
+   source_quality_score = weighted_avg(source_weights × source_counts)
    ```
 
-4. **Detect trends**
+5. **Detect trends**
    - Compare current 30-day window to previous 30-day window
    - Flag increasing (50%+ more), decreasing (50%+ fewer), or stable
 
@@ -98,6 +120,13 @@ Update `.claude/patterns/patterns.json`:
       "last_seen": "2025-01-15",
       "trend": "stable|increasing|decreasing|new|resolved",
       "confidence": 0.85,
+      "source_breakdown": {
+        "explicit_user_correction": 2,
+        "implicit_user_correction": 1,
+        "blocking_review": 3,
+        "warning_review": 1
+      },
+      "source_quality_score": 0.72,
       "affected_agents": ["api-dev", "code-reviewer"],
       "fix_template": "How to fix this issue",
       "promoted_to_runbook": false
@@ -106,6 +135,7 @@ Update `.claude/patterns/patterns.json`:
   "meta": {
     "last_analysis": "2025-01-15T10:30:00Z",
     "total_findings_analyzed": 142,
+    "total_corrections_analyzed": 24,
     "total_patterns": 23
   }
 }
@@ -168,10 +198,28 @@ Append to `.claude/skills/runbooks/{agent}/RUNBOOK.md` for each affected agent.
 ```
 === EVOLVE ANALYSIS ===
 
-Findings analyzed: 47 (last 30 days)
+Data sources analyzed (last 30 days):
+  Review findings:    35
+  User corrections:   12  (8 explicit, 4 implicit)
+  Session learnings:   8
+
 Patterns identified: 12
 New patterns: 2
 Updated patterns: 8
+
+=== SOURCE QUALITY ===
+
+High-confidence sources (weight >= 0.7):
+  Explicit user corrections:  8  (weight 1.0)
+  Blocking review findings:  15  (weight 0.7)
+
+Medium-confidence sources (weight 0.4-0.6):
+  Implicit user corrections:  4  (weight 0.8)
+  Warning review findings:   12  (weight 0.5)
+  Session learnings:          8  (weight 0.4)
+
+Low-confidence sources (weight < 0.4):
+  Nit review findings:        8  (weight 0.3)
 
 === PATTERN SUMMARY ===
 
@@ -251,4 +299,6 @@ Recommended schedule:
 - `learning-engine/SKILL.md` — Overview of learning system
 - `learning-engine/analysis.md` — Pattern analysis algorithms
 - `learning-engine/promotion.md` — Runbook promotion rules
+- `user-corrections/SKILL.md` — User correction detection and logging
+- `user-corrections/schemas.md` — User corrections data schema
 - `runbooks/SKILL.md` — Runbook structure and conventions

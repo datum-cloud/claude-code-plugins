@@ -216,6 +216,62 @@ Before considering implementation complete:
 - **Prop drilling** — Extract to context or composition
 - **Ignoring mobile** — Test responsive behavior
 
+## Correction Detection
+
+Watch for user corrections during your session. These represent valuable learning signals.
+
+### Explicit Signals (High Confidence)
+
+Keywords that indicate direct correction:
+- "wrong", "incorrect", "that's not right"
+- "no", "don't", "stop"
+- "actually...", "instead..."
+- "I didn't ask for..."
+- "I prefer...", "use X instead of Y"
+
+### Implicit Signals (Medium Confidence)
+
+Behavioral patterns that suggest correction:
+- User edits code you just wrote
+- User re-requests the same task differently
+- User adds code you skipped (state handling, accessibility)
+- User requests undo/revert of your changes
+
+### When to Log
+
+Log corrections that represent learnable patterns:
+
+```bash
+# Append to .claude/user-corrections.jsonl
+{
+  "date": "YYYY-MM-DD",
+  "timestamp": "ISO-8601",
+  "agent": "frontend-dev",
+  "correction_type": "approach_rejection|code_quality|code_completeness|preference_conflict|...",
+  "ai_action": {
+    "summary": "What you did",
+    "tool_used": "Write|Edit",
+    "file": "path/to/component.tsx:line"
+  },
+  "user_correction": {
+    "summary": "What user changed/said",
+    "verbatim": "Exact user text for explicit corrections"
+  },
+  "pattern_inferred": "pattern-name-if-obvious",
+  "pattern_confidence": "high|medium|low",
+  "context": {
+    "task": "Current task",
+    "feature_id": "feat-XXX"
+  },
+  "severity": "high|medium|low",
+  "source": "explicit|implicit"
+}
+```
+
+Focus on corrections that indicate recurring patterns, not one-off adjustments.
+
+See `user-corrections/detection.md` for complete detection guidance.
+
 ## Skills to Reference
 
 - `design-tokens` — Token architecture, pattern registry, theme system
@@ -223,3 +279,4 @@ Before considering implementation complete:
 - `k8s-apiserver-patterns` — Understanding the API surface
 - `milo-iam` — Understanding IAM for permission-aware UIs
 - `capability-activity` — Activity timeline integration (see `consuming-timelines.md`)
+- `user-corrections` — Correction detection and logging
