@@ -45,6 +45,7 @@ Available includes based on diagram level:
 
 | File | Purpose |
 |------|---------|
+| `scripts/generate-diagrams.sh` | Generate PNGs from .puml files using Docker |
 | `context-diagrams.md` | System context diagram patterns |
 | `container-diagrams.md` | Container diagram patterns |
 | `component-diagrams.md` | Component diagram patterns |
@@ -214,29 +215,61 @@ Container(legacy, "Legacy Service", "Java", "Being replaced", $tags="deprecated"
 
 ### Documentation Integration
 
-Place diagrams in `docs/architecture/`:
+**Important:** GitHub does not render PlantUML or C4 diagrams directly. You must:
+1. Create `.puml` source files
+2. Generate PNG images from them
+3. Embed the PNGs in markdown
+
+Place diagram sources and generated images in `docs/architecture/`:
 
 ```
 docs/
 └── architecture/
-    ├── context.puml          # Level 1
-    ├── containers.puml       # Level 2
+    ├── context.puml          # Level 1 source
+    ├── context.png           # Generated image
+    ├── containers.puml       # Level 2 source
+    ├── containers.png        # Generated image
     └── components/
-        ├── api-server.puml   # Level 3 for API
-        └── controller.puml   # Level 3 for controller
+        ├── api-server.puml   # Level 3 source
+        ├── api-server.png    # Generated image
+        └── controller.puml
+        └── controller.png
 ```
 
-### Rendering
+### Rendering PNGs
 
-Render diagrams using:
+Use the provided script to generate PNG images from PlantUML sources. The script uses Docker, so no local PlantUML installation is required.
 
 ```bash
-# Using PlantUML CLI
-plantuml -tpng docs/architecture/*.puml
+# Generate PNGs for all .puml files in docs/architecture (default)
+./skills/c4-diagrams/scripts/generate-diagrams.sh
 
-# Using PlantUML server
-# Add to markdown: ![Diagram](http://www.plantuml.com/plantuml/proxy?src=...)
+# Generate PNGs for a custom directory
+./skills/c4-diagrams/scripts/generate-diagrams.sh docs/diagrams
+
+# Or use Docker directly
+docker run --rm -v "$(pwd)/docs/architecture:/data" plantuml/plantuml -tpng "/data/*.puml"
 ```
+
+**Always regenerate PNGs when updating `.puml` files.** Commit both the source and generated images.
+
+### Embedding in Markdown
+
+Reference the generated PNG in your markdown documentation:
+
+```markdown
+## System Context
+
+The following diagram shows the system context for Datum Cloud Platform.
+
+![System Context](./architecture/context.png)
+
+## Container View
+
+![Containers](./architecture/containers.png)
+```
+
+Use relative paths from the markdown file to the PNG. Always include alt text describing the diagram.
 
 ## Example: Datum Platform Context
 
@@ -268,6 +301,8 @@ Rel(platform, monitoring, "Exports to", "OTLP")
 
 ## Anti-patterns to Avoid
 
+- **Embedding PlantUML directly in markdown** — GitHub won't render it; generate PNGs instead
+- **Committing .puml without .png** — Always generate and commit both source and image
 - **Too much detail** — Context diagrams shouldn't show internal components
 - **Missing descriptions** — Every element needs context
 - **Inconsistent abstraction** — Don't mix containers and components

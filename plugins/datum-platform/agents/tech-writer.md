@@ -6,7 +6,7 @@ description: >
   inline code documentation, and any user-facing or operator-facing written
   content that lives in docs/ or README files. Use when someone says
   "document this" or "write a guide for" or "update the README."
-tools: Read, Write, Edit, Grep, Glob, Bash(git *), Bash(task *)
+tools: Read, Write, Edit, Grep, Glob, Bash(git *), Bash(task *), Bash(docker run *plantuml*), Bash(./skills/*/scripts/*)
 model: sonnet
 ---
 
