@@ -37,20 +37,24 @@ Or with scope for larger changes:
 
 ### Summary
 
-Brief description of what changes and why. Use 2-4 bullet points.
+Describe the problem and solution in plain language. Start with prose that explains the context, then use bullet points only for key behaviors or outcomes that benefit from scannable formatting.
 
 ```markdown
 ## Summary
 
-- Adds rate limiting to public API endpoints
-- Prevents abuse from automated clients making excessive requests
-- Default limits set to 100 req/min, configurable via environment
+Public API endpoints were vulnerable to abuse from automated clients making excessive requests. This adds rate limiting to protect service availability.
+
+Key behaviors:
+
+- Requests exceeding 100/min receive 429 responses with retry headers
+- Limits are configurable per-endpoint via environment variables
+- Existing clients below the threshold see no change
 ```
 
-Focus on:
-- What problem this solves
+Write for humans first. Focus on:
+- What problem this solves (lead with this)
 - Why this approach was chosen
-- Key outcomes or behaviors
+- Key outcomes that reviewers should verify
 
 ### Test Plan
 
@@ -139,18 +143,26 @@ Call out areas needing particular attention.
 - Consider if the error handling in `handler.go:45` is sufficient
 ```
 
+## Writing Style
+
+Write PR descriptions like you're explaining the change to a colleague. Use natural prose to provide context, and reserve bullet points for lists of discrete items.
+
+| Use prose for | Use bullets for |
+|---------------|-----------------|
+| Problem description | List of key behaviors |
+| Context and rationale | Test scenarios |
+| How components relate | Breaking changes list |
+
+Avoid starting the summary with bullet points. Lead with a sentence that orients the reader, then add bullets if needed for scannable details.
+
 ## Structure Template
 
 ```markdown
 ## Summary
 
-- <What this PR does>
-- <Why it's needed>
-- <Key implementation decisions>
+<Describe the problem in 1-2 sentences. Then explain what this PR does and why.>
 
-## Changes
-
-- **<category>**: <description>
+<Optional: Key behaviors or outcomes as bullets if they benefit from scanning.>
 
 ## Test plan
 
@@ -171,9 +183,9 @@ Closes #<issue-number>
 ```markdown
 ## Summary
 
-- Adds user activity timeline to dashboard
-- Surfaces recent actions for quick context on user behavior
-- Uses existing Activity API with client-side pagination
+Users currently have no visibility into recent activity on their resources. This adds an activity timeline to the dashboard that surfaces recent actions, helping users quickly understand what changed and when.
+
+The timeline uses the existing Activity API with client-side pagination, so no backend changes are required.
 
 ## Test plan
 
@@ -190,9 +202,9 @@ Closes #234
 ```markdown
 ## Summary
 
-- Fixes race condition in connection pool cleanup
-- Connections were being reused after closure under high load
-- Root cause: missing mutex in `releaseConnection()`
+Under high load, connections were being reused after closure, causing intermittent failures for downstream requests. The root cause was a missing mutex in `releaseConnection()` that allowed concurrent access during cleanup.
+
+This adds proper synchronization to the connection pool, ensuring connections are fully released before being returned to the pool.
 
 ## Test plan
 
@@ -248,6 +260,7 @@ When creating PR descriptions:
 | Avoid | Why |
 |-------|-----|
 | Tool attribution/watermarks | Clutters PR, unprofessional |
+| Bullet-point-only summaries | Feels robotic; lead with prose for context |
 | Emoji overuse | Distracting, inconsistent |
 | Vague test plans | "Tested locally" provides no value |
 | Implementation details only | Diff shows what; PR explains why |
