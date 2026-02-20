@@ -169,3 +169,4 @@ Before considering documentation complete:
 - `kustomize-patterns` — Understanding deployment for operator docs
 - `gtm-templates` — Document templates and changelog format
 - `capability-activity` — Understanding activity system for user guide documentation
+- `c4-diagrams` — Creating C4 architecture diagrams with PlantUML
