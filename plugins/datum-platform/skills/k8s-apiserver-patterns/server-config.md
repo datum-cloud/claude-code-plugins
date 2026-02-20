@@ -138,6 +138,33 @@ func (o *Options) Config() (*Config, error) {
 }
 ```
 
+## Feature Gates Integration
+
+For managing experimental features with runtime toggles, see `feature-gates.md`.
+
+Import features package to register gates via init():
+
+```go
+import (
+    _ "go.miloapis.com/myservice/pkg/features"
+)
+```
+
+Check feature enablement in Config methods:
+
+```go
+func (c *Config) Complete() CompletedConfig {
+    c.GenericConfig.Complete()
+
+    if utilfeature.DefaultFeatureGate.Enabled(features.MyFeature) {
+        // Initialize feature-specific configuration
+        c.FeatureClient = newFeatureClient(c.FeatureURL)
+    }
+
+    return CompletedConfig{&completedConfig{c}}
+}
+```
+
 ## APIService Registration
 
 ```yaml

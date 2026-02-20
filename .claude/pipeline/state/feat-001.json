@@ -1,0 +1,19 @@
+{
+  "id": "feat-001",
+  "slug": "kubernetes-feature-gates-pattern",
+  "current_stage": "implementation",
+  "created": "2026-02-20T00:00:00Z",
+  "updated": "2026-02-20T00:00:00Z",
+  "artifacts": {
+    "request": ".claude/pipeline/requests/feat-001-kubernetes-feature-gates-pattern.md",
+    "discovery_brief": ".claude/pipeline/discovery/feat-001-brief.md",
+    "architecture_plan": ".claude/pipeline/architecture/feat-001-plan.md",
+    "documentation": [
+      "plugins/datum-platform/skills/k8s-apiserver-patterns/feature-gates.md",
+      "plugins/datum-platform/skills/k8s-apiserver-patterns/SKILL.md",
+      "plugins/datum-platform/skills/k8s-apiserver-patterns/server-config.md"
+    ]
+  },
+  "stages_completed": ["request", "discovery", "architecture", "implementation"],
+  "status": "complete"
+}

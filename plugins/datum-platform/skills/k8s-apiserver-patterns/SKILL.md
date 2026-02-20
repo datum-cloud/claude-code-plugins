@@ -26,6 +26,7 @@ Datum Cloud services are Kubernetes aggregated API servers, not CRD-based contro
 | `storage.md` | Storage backend implementation |
 | `validation.md` | Validation patterns |
 | `server-config.md` | Server configuration |
+| `feature-gates.md` | Feature lifecycle management |
 
 ## Core Patterns
 
@@ -92,3 +93,4 @@ Run `scripts/validate-types.sh` to check:
 - `storage.md` — Storage patterns
 - `validation.md` — Validation patterns
 - `server-config.md` — Server setup
+- `feature-gates.md` — Feature lifecycle patterns
