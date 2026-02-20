@@ -1,0 +1,41 @@
+{
+  "id": "feat-003",
+  "current_stage": "complete",
+  "created": "2026-02-20T12:30:00Z",
+  "updated": "2026-02-20T12:45:00Z",
+  "artifacts": {
+    "request": ".claude/pipeline/requests/feat-003-pr-description-conventions.md",
+    "brief": ".claude/pipeline/briefs/feat-003-pr-description-conventions.md",
+    "pr": "https://github.com/datum-cloud/claude-code-plugins/pull/4"
+  },
+  "history": [
+    {
+      "stage": "request",
+      "timestamp": "2026-02-20T12:30:00Z",
+      "actor": "user",
+      "action": "created",
+      "notes": "Feature request from conversation during feat-002"
+    },
+    {
+      "stage": "discovery",
+      "timestamp": "2026-02-20T12:35:00Z",
+      "actor": "product-discovery",
+      "action": "completed",
+      "notes": "Discovery brief produced - separate skill for PR conventions"
+    },
+    {
+      "stage": "implementation",
+      "timestamp": "2026-02-20T12:40:00Z",
+      "actor": "user",
+      "action": "completed",
+      "notes": "Created pr-conventions skill, bumped version to 1.5.0"
+    },
+    {
+      "stage": "complete",
+      "timestamp": "2026-02-20T12:45:00Z",
+      "actor": "user",
+      "action": "completed",
+      "notes": "PR #4 created"
+    }
+  ]
+}

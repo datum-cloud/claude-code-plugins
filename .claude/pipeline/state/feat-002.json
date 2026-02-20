@@ -1,0 +1,41 @@
+{
+  "id": "feat-002",
+  "current_stage": "complete",
+  "created": "2026-02-20T12:10:00Z",
+  "updated": "2026-02-20T12:30:00Z",
+  "artifacts": {
+    "request": ".claude/pipeline/requests/feat-002-commit-message-conventions.md",
+    "brief": ".claude/pipeline/briefs/feat-002-commit-message-conventions.md",
+    "pr": "https://github.com/datum-cloud/claude-code-plugins/pull/3"
+  },
+  "history": [
+    {
+      "stage": "request",
+      "timestamp": "2026-02-20T12:10:00Z",
+      "actor": "user",
+      "action": "created",
+      "notes": "Feature request from GitHub issue #2"
+    },
+    {
+      "stage": "discovery",
+      "timestamp": "2026-02-20T12:15:00Z",
+      "actor": "product-discovery",
+      "action": "completed",
+      "notes": "Discovery brief produced - straightforward skill addition"
+    },
+    {
+      "stage": "implementation",
+      "timestamp": "2026-02-20T12:25:00Z",
+      "actor": "user",
+      "action": "completed",
+      "notes": "Created commit-conventions skill, bumped version to 1.4.0"
+    },
+    {
+      "stage": "complete",
+      "timestamp": "2026-02-20T12:30:00Z",
+      "actor": "user",
+      "action": "completed",
+      "notes": "PR #3 created, closes issue #2"
+    }
+  ]
+}
