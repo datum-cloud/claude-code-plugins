@@ -1,7 +1,7 @@
 {
   "name": "datum-platform",
   "description": "Kubernetes platform engineering automation with aggregated API servers, controller patterns, GitOps deployment, and platform capabilities",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": {
     "name": "Datum Cloud",
     "url": "https://github.com/datum-cloud"

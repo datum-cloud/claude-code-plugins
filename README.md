@@ -6,7 +6,7 @@ A marketplace for Claude Code plugins providing platform engineering tools and a
 
 | Plugin | Description | Version |
 |--------|-------------|---------|
-| [datum-platform](./plugins/datum-platform/) | Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment | 1.3.0 |
+| [datum-platform](./plugins/datum-platform/) | Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment | 1.4.0 |
 | [datum-gtm](./plugins/datum-gtm/) | Go-to-market automation with commercial strategy, product discovery, and customer support | 1.0.0 |
 
 ## Installation
@@ -117,7 +117,7 @@ Kubernetes platform engineering automation with aggregated API servers, controll
 
 **Features:**
 - 6 specialized agents (api-dev, frontend-dev, sre, test-engineer, code-reviewer, tech-writer)
-- 24 skill modules covering Kubernetes patterns, Go conventions, deployment workflows, and more
+- 25 skill modules covering Kubernetes patterns, Go conventions, deployment workflows, and more
 - Pipeline orchestration for structured feature development
 - Automatic learning engine for pattern extraction
 
