@@ -1,0 +1,25 @@
+{
+  "name": "datum-activity",
+  "description": "Analyze Kubernetes platform activity and help service providers create activity timelines for consumers",
+  "version": "1.0.0",
+  "author": {
+    "name": "Datum Cloud",
+    "url": "https://github.com/datum-cloud"
+  },
+  "repository": "https://github.com/datum-cloud/claude-code-plugins",
+  "license": "MIT",
+  "keywords": [
+    "kubernetes",
+    "activity",
+    "audit-logs",
+    "events",
+    "observability",
+    "timeline",
+    "investigation",
+    "compliance"
+  ],
+  "mcp": {
+    "server": "activity mcp",
+    "description": "MCP server providing 16 tools for querying audit logs, activities, events, and policies"
+  }
+}
