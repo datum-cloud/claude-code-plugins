@@ -39,9 +39,13 @@
         "name": "Datum Cloud",
         "email": "engineering@datumcloud.io"
       },
-      "source": "./plugins/datum-activity",
+      "source": {
+        "type": "github",
+        "repo": "datum-cloud/activity",
+        "path": ".claude-plugin"
+      },
       "category": "observability",
-      "homepage": "https://github.com/datum-cloud/claude-code-plugins"
+      "homepage": "https://github.com/datum-cloud/activity"
     }
   ]
 }
