@@ -30,6 +30,22 @@
       "source": "./plugins/datum-gtm",
       "category": "business",
       "homepage": "https://github.com/datum-cloud/claude-code-plugins"
+    },
+    {
+      "name": "datum-activity",
+      "description": "Analyze Kubernetes platform activity and help service providers create activity timelines for consumers",
+      "version": "1.0.0",
+      "author": {
+        "name": "Datum Cloud",
+        "email": "engineering@datumcloud.io"
+      },
+      "source": {
+        "type": "github",
+        "repo": "datum-cloud/activity",
+        "path": ".claude-plugin"
+      },
+      "category": "observability",
+      "homepage": "https://github.com/datum-cloud/activity"
     }
   ]
 }
