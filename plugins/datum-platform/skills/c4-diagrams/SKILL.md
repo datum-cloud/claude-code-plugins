@@ -143,6 +143,55 @@ Rel(handler, storage, "Uses")
 | `ComponentDb(alias, label, technology, description)` | Database component |
 | `ComponentQueue(alias, label, technology, description)` | Queue component |
 
+### Internal vs External Elements
+
+Use `_Ext` variants to distinguish elements your service owns from those it interacts with.
+
+**Ownership Rule**: Use internal (`Container`, `System`) for elements your team owns and
+maintains. Use external (`Container_Ext`, `System_Ext`) for elements owned by other teams
+or external services.
+
+| Element Type | Internal (you own) | External (others own) |
+|--------------|-------------------|----------------------|
+| System | `System()` | `System_Ext()` |
+| Container | `Container()` | `Container_Ext()` |
+| Component | `Component()` | `Component_Ext()` |
+| Database | `ContainerDb()` | `ContainerDb_Ext()` |
+
+**Common patterns:**
+
+| Scenario | Classification | Rationale |
+|----------|---------------|-----------|
+| CRD your service defines | `Container` | You own the resource definition |
+| Controller your service runs | `Container` | You own the code |
+| Resource you create, other service processes | `Container_Ext` | Other team owns the controller |
+| Platform service (Gateway, Workload) | `Container_Ext` | Other team owns |
+| Consumer's application | `Container_Ext` | Consumer owns |
+| External SaaS (GitHub, Stripe) | `System_Ext` | Truly external |
+
+**Example: Functions service perspective**
+
+```plantuml
+' Internal - Functions owns these
+Container(function, "Function", "CRD", "We define this resource")
+Container(controller, "Function Controller", "Go", "We own this code")
+
+' External - we create but others process
+Container_Ext(workload, "Workload", "CRD", "We create, Workload team processes")
+Container_Ext(service_pub, "ServicePublication", "Service Connect", "We create, Service Connect processes")
+
+' External - other teams own entirely
+Container_Ext(gateway, "Gateway", "Gateway API", "Networking team owns")
+Container_Ext(instance, "Instance", "Unikraft", "Workload controller creates")
+```
+
+**Context vs Container diagrams:**
+
+- **Context (Level 1)**: Use `System` for other services in your organization,
+  `System_Ext` for truly external services (SaaS, third-party APIs)
+- **Container (Level 2)**: Use `Container_Ext` for any container not owned by your team,
+  even if it's within your organization
+
 ### Relationships
 
 | Macro | Description |
