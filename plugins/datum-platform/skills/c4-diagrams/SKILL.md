@@ -185,6 +185,132 @@ Layout macros:
 | `LAYOUT_WITH_LEGEND()` | Add legend to diagram |
 | `LAYOUT_AS_SKETCH()` | Hand-drawn style |
 
+## Multi-Boundary Layout Patterns
+
+When creating diagrams with multiple system boundaries (e.g., cross-control-plane
+architectures), use these patterns for clean, readable layouts.
+
+### Side-by-Side Boundaries
+
+Place related boundaries horizontally using `Rel_L` / `Rel_R` for cross-boundary
+relationships:
+
+```plantuml
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+System_Boundary(consumer, "Consumer Control Plane") {
+    Container(function, "Function", "CRD", "User-facing resource")
+    Container(endpoint, "ServiceEndpoint", "Service Connect", "Private IP")
+}
+
+System_Boundary(provider, "Service Control Plane") {
+    Container(controller, "Controller", "Go", "Watches resources")
+    Container(publication, "ServicePublication", "Service Connect", "Exposes service")
+}
+
+' Cross-boundary: use Rel_L to connect right boundary to left
+Rel_L(controller, function, "Watches", "direct API")
+Rel_L(publication, endpoint, "Connected via", "Service Connect")
+
+@enduml
+```
+
+### Grid Structure Within Boundaries
+
+Arrange elements in a 2x2 grid using mixed directions:
+
+```
+TopLeft ──Rel_R──→ TopRight
+   │                  │
+ Rel_D              Rel_D
+   ↓                  ↓
+BottomLeft ←─Rel_L── BottomRight
+```
+
+Example:
+
+```plantuml
+' Within a boundary, create grid with mixed directions
+Rel_R(httproute, function, "References", "backendRef")      ' top row horizontal
+Rel_U(gateway, httproute, "Attaches", "parentRef")          ' left column vertical
+Rel_D(function, endpoint, "Resolves to", "status.endpoint") ' right column vertical
+```
+
+### Relationship Direction Guidelines
+
+| Relationship Type | Direction | Rationale |
+|-------------------|-----------|-----------|
+| Cross-boundary | `Rel_L` / `Rel_R` | Creates side-by-side boundary layout |
+| Within-boundary horizontal | `Rel_R` | Maintains left-to-right data flow |
+| Within-boundary vertical | `Rel_D` / `Rel_U` | Creates grid rows within boundary |
+| Reverse flow (e.g., load balancing) | `Rel_L` | Shows return path or reverse relationship |
+
+### Data Flow Alignment
+
+Arrange elements by data flow direction (left-to-right):
+
+| Position | Element Types |
+|----------|---------------|
+| Left | Entry points (Gateway, API endpoints) |
+| Middle | Processing/routing (Controllers, Functions) |
+| Right | Execution/storage (Instances, Databases) |
+
+### Complete Example: Cross-Control-Plane Architecture
+
+```plantuml
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+title Cross-Control-Plane Architecture
+
+System_Boundary(consumer, "Consumer Control Plane") {
+    Container(httproute, "HTTPRoute", "Gateway API", "Routes traffic")
+    Container(function, "Function", "CRD", "User-facing resource")
+    Container(gateway, "Gateway", "Gateway API", "Accepts traffic")
+    Container(endpoint, "ServiceEndpoint", "Service Connect", "Private IP")
+}
+
+System_Boundary(provider, "Service Control Plane") {
+    Container(controller, "Controller", "Go", "Reconciles resources")
+    Container(workload, "Workload", "CRD", "Manages instances")
+    Container(publication, "ServicePublication", "Service Connect", "Exposes workload")
+    Container(instance, "Instance", "Runtime", "Execution environment")
+}
+
+' Consumer internal: grid layout
+Rel_U(gateway, httproute, "Attaches", "parentRef")
+Rel_R(httproute, function, "References", "backendRef")
+Rel_D(function, endpoint, "Resolves to", "status.endpoint")
+
+' Provider internal: grid layout
+Rel_R(controller, workload, "Generates", "owner ref")
+Rel_D(controller, publication, "Creates")
+Rel_D(workload, instance, "Manages", "scale 0-N")
+Rel_L(publication, workload, "Load balances to")
+
+' Cross-boundary: horizontal connections
+Rel_L(controller, function, "Watches & updates", "direct API")
+Rel_L(publication, endpoint, "Connected via", "Service Connect")
+
+@enduml
+```
+
+### Tips for Clean Multi-Boundary Layouts
+
+1. **Consistent boundary placement** — Keep related boundaries at same level
+   (side-by-side or stacked)
+2. **Align cross-boundary connections** — Connect elements at similar vertical
+   positions
+3. **Use grids within boundaries** — 2x2 or 2x3 grids keep elements organized
+4. **Minimize line crossings** — Adjust directions to avoid overlapping
+   relationship lines
+5. **Group by function** — Entry points together, processing together, execution
+   together
+
 ## Styling
 
 Customize colors and appearance:
