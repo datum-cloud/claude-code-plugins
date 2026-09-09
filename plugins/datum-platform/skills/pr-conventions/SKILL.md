@@ -248,6 +248,62 @@ gh api graphql -f query='mutation($id:ID!){minimizeComment(input:{subjectId:$id,
 Rewrite the issue title and opening post to the corrected framing too. A stale
 title outlives every comment.
 
+## Replying in a dispute
+
+A review that contradicts a fact in your pull request, and your reply to it,
+follow different rules from the evidence comment on your own work. Depth
+belongs in that evidence comment. A dispute reply carries one thing: why the
+two of you disagree.
+
+Pull request datum-cloud/infra#4968 shows the failure. Four comments and
+seventeen hours settled one fact, that the reviewer's checkout predated the
+merge which added the route under dispute. The decisive sentence came last in
+a 210-word reply, after line numbers, a commit SHA, a render, and a live
+object. The gate does not measure comments, so these rules rest on the writer.
+
+**Pin your state before contradicting a fact.** Say what you read and when:
+`main at 49f02e4`, `live production, generation 12`, `staging overlay rendered
+at 2026-09-08 09:00Z`. Two readers who each confirmed opposite facts read
+different states. Naming yours lets the other side find the difference in one
+line instead of proving the fact again.
+
+**Answer a contradiction with its cause, not with more evidence.** When a
+reviewer asserts something you know to be false, the reader needs the reason
+the two of you differ. "The route landed in #4920 at 2026-09-08 18:10Z, after
+your checkout" ends the thread. A second proof of the same fact does not.
+
+**One claim, one proof.** Cite the most authoritative source and stop. A live
+object beats Git at a SHA, and Git at a SHA beats a local render. If the reader
+should reproduce it, give the command in a code block. Three proofs of one fact
+tell the reader the writer did not trust the first.
+
+**State the fact, not how you learned it.** "Confirmed via kustomize build",
+"checked all VMAlertmanagerConfig objects, base and both overlays", and
+"verified against current main" describe the writer's afternoon. Delete them.
+The fact stands or falls on its citation.
+
+**Cut what the reader verifies faster than reads.** The author of the
+repository does not need telling that `us-central-1-lab` is a lab cluster, or
+where the production cluster label is set. Explain only what the reader
+plausibly lacks.
+
+**No parentheses.** Every parenthesis in a dispute is a proof of a proof.
+Promote it to a sentence or delete it.
+
+**Don't restate the pull request, and don't repeat your last comment.** The
+reader is on the page. If your previous reply did not land, name the sentence
+the other side missed rather than saying it all again with more.
+
+**Fixed shapes.** A review that requests changes is a verdict, a reason, and an
+ask. A withdrawal is a correction, and corrections are one line: withdrawn,
+why, and the new verdict.
+
+| Posted | Rewrite |
+|---|---|
+| "the only route to the blackhole receiver matches cluster=us-central-1-lab, which is an edge lab cluster, not prod (prod's cluster label is prod-infrastructure-control-plane, set in production/kustomization.yaml). There is no route matching severity=info anywhere." | The only blackhole route matches `cluster=us-central-1-lab`. Nothing routes on `severity=info`. Read at main, 2026-09-08 09:00Z. |
+| A 210-word reply citing line numbers, a SHA, a render, and a live object | The info route landed in #4920 at 2026-09-08 18:10Z. Your checkout predates it. Live production has it at `routes[1]`. |
+| A 90-word approval restating the whole routing argument | Withdrawn. My checkout predated #4920. Approving. |
+
 ## Callouts
 
 `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`.
