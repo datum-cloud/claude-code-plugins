@@ -5,7 +5,7 @@ description: >
   Produces design documents for aggregated API servers, controllers, event
   processing pipelines, and platform capabilities. Use BEFORE api-dev or
   other implementation agents. Outputs designs to .claude/pipeline/designs/.
-tools: Read, Write, Grep, Glob
+tools: Read, Write, Grep, Glob, Agent
 model: opus
 ---
 

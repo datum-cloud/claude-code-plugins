@@ -2,6 +2,16 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.15.0] - 2026-09-09
+
+### Added
+
+- **Cross-service design patterns** (`platform-knowledge`, datum-platform). Six principles for how services relate to each other: directed dependency, resource projection, declaration versus evaluation, config-only status conditions, inline versus separate CRD, and technology-neutral APIs. The `plan` agent loads them when a feature spans more than one service, and `api-dev` loads them when projecting a resource into another service's API.
+
+### Changed
+
+- **Authoring agents can spawn subagents.** `plan`, `sre`, `api-dev`, `frontend-dev`, `tech-writer`, `test-engineer`, and `operational-reviewer` now carry `Agent` in their tool lists, so one that opens a pull request runs the review loop itself before returning, as the loop skill already said it could. The read-only reviewers and the agents that work from settled findings still withhold `Agent`: a child of a hook-covered reviewer would carry its own type and pass the write-refusing hook, and the rest are read-only by prompt alone. `model-tiers` gains a section stating which agents nest, why the rest do not, and why the default three-layer depth stays.
+
 ## [1.14.0] - 2026-09-07
 
 ### Added

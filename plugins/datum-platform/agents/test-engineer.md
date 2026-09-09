@@ -5,7 +5,7 @@ description: >
   table-driven test patterns, test fixtures, and test utilities. Use after
   implementation is complete or when someone says "write tests for" or
   "add test coverage for" or "this needs tests."
-tools: Read, Write, Edit, Grep, Glob, Bash
+tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 model: sonnet
 ---
 
