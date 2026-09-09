@@ -55,6 +55,7 @@ Based on the task at hand:
 | Activity integration (policies) | `capability-activity/SKILL.md`, `capability-activity/implementation.md` |
 | Activity integration (events) | `capability-activity/emitting-events.md` |
 | Activity integration (consuming) | `capability-activity/consuming-timelines.md` |
+| Projecting resources into another service's API | `platform-knowledge/cross-service-patterns.md` |
 
 ### 3. Run Scaffold Scripts
 

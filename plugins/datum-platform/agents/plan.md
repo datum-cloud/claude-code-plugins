@@ -23,8 +23,9 @@ Before designing, gather context in this order:
 4. Read `k8s-apiserver-patterns/SKILL.md` for storage, types, and validation patterns
 5. Read `controller-runtime-patterns/SKILL.md` if controllers are involved
 6. Read relevant capability skills (`milo-iam`, `capability-quota`, `capability-activity`) if integration is needed
-7. Read `.claude/patterns/patterns.json` for high-confidence patterns to follow or avoid
-8. Check `.claude/pipeline/designs/` for related existing designs
+7. Read `platform-knowledge/cross-service-patterns.md` if the feature touches more than one service
+8. Read `.claude/patterns/patterns.json` for high-confidence patterns to follow or avoid
+9. Check `.claude/pipeline/designs/` for related existing designs
 
 ## Workflow
 

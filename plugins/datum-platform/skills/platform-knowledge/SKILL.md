@@ -159,3 +159,4 @@ Read the individual capability skills for integration details.
 ## Related Files
 
 - `services-catalog.md` — Catalog of platform services
+- `cross-service-patterns.md` — Directed dependency principle, resource projection, declaration vs. evaluation separation, and technology-neutral API design
