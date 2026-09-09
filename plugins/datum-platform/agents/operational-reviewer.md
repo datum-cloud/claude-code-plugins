@@ -7,7 +7,7 @@ description: >
   "error rate report", or "provisioning report". Covers edge traffic, top
   consumers, error codes by API group, and control plane provisioning health.
   Read-only on metrics; writes reports to datum-cloud/engineering.
-tools: Read, Write, Edit, Bash, Grep, Glob
+tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 model: sonnet
 ---
 
