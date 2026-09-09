@@ -255,22 +255,28 @@ follow different rules from the evidence comment on your own work. Depth
 belongs in that evidence comment. A dispute reply carries one thing: why the
 two of you disagree.
 
-Pull request datum-cloud/infra#4968 shows the failure. Four comments and
-seventeen hours settled one fact, that the reviewer's checkout predated the
-merge which added the route under dispute. The decisive sentence came last in
-a 210-word reply, after line numbers, a commit SHA, a render, and a live
-object. The gate does not measure comments, so these rules rest on the writer.
+Pull request datum-cloud/infra#4968 shows the failure. Five posts, three
+reviews and two replies, and seventeen hours settled one fact, that the
+reviewer's checkout predated the merge which added the route under dispute.
+The decisive sentence came last in a reply that cited line numbers, a commit
+SHA, a render, and a live object. The gate does not measure comments, so these
+rules rest on the writer.
+
+The reply is addressed to a person, so an agent drafts it for the requester to
+send, and posts it only when the requester asks.
 
 **Pin your state before contradicting a fact.** Say what you read and when:
-`main at 49f02e4`, `live production, generation 12`, `staging overlay rendered
-at 2026-09-08 09:00Z`. Two readers who each confirmed opposite facts read
-different states. Naming yours lets the other side find the difference in one
-line instead of proving the fact again.
+`main at a0e658d`, `live production at 2026-09-09 17:45Z`, `staging overlay
+rendered at 2026-09-08 09:00Z`. Two readers who each confirmed opposite facts
+read different states. Naming yours lets the other side find the difference in
+one line instead of proving the fact again.
 
 **Answer a contradiction with its cause, not with more evidence.** When a
 reviewer asserts something you know to be false, the reader needs the reason
-the two of you differ. "The route landed in #4920 at 2026-09-08 18:10Z, after
-your checkout" ends the thread. A second proof of the same fact does not.
+the two of you differ. "The route merged in #4920 at 2026-09-08 18:34Z, and a
+checkout older than that does not have it" ends the thread. A second proof of
+the same fact does not. You cannot read the other side's checkout, so state the
+cause as a condition rather than as a fact about them.
 
 **One claim, one proof.** Cite the most authoritative source and stop. A live
 object beats Git at a SHA, and Git at a SHA beats a local render. If the reader
@@ -280,7 +286,8 @@ tell the reader the writer did not trust the first.
 **State the fact, not how you learned it.** "Confirmed via kustomize build",
 "checked all VMAlertmanagerConfig objects, base and both overlays", and
 "verified against current main" describe the writer's afternoon. Delete them.
-The fact stands or falls on its citation.
+The fact stands or falls on its citation. A pinned state is a citation, not a
+method: keep `main at a0e658d`, cut "confirmed via kustomize build".
 
 **Cut what the reader verifies faster than reads.** The author of the
 repository does not need telling that `us-central-1-lab` is a lab cluster, or
@@ -295,14 +302,14 @@ reader is on the page. If your previous reply did not land, name the sentence
 the other side missed rather than saying it all again with more.
 
 **Fixed shapes.** A review that requests changes is a verdict, a reason, and an
-ask. A withdrawal is a correction, and corrections are one line: withdrawn,
-why, and the new verdict.
+ask. A withdrawal is a correction, so the one-sentence rule above applies: the
+withdrawal, its cause, and the new verdict.
 
 | Posted | Rewrite |
 |---|---|
 | "the only route to the blackhole receiver matches cluster=us-central-1-lab, which is an edge lab cluster, not prod (prod's cluster label is prod-infrastructure-control-plane, set in production/kustomization.yaml). There is no route matching severity=info anywhere." | The only blackhole route matches `cluster=us-central-1-lab`. Nothing routes on `severity=info`. Read at main, 2026-09-08 09:00Z. |
-| A 210-word reply citing line numbers, a SHA, a render, and a live object | The info route landed in #4920 at 2026-09-08 18:10Z. Your checkout predates it. Live production has it at `routes[1]`. |
-| A 90-word approval restating the whole routing argument | Withdrawn. My checkout predated #4920. Approving. |
+| A reply citing line numbers, a SHA, a render, and a live object | The info route merged in #4920 at 2026-09-08 18:34Z, and a checkout older than that does not have it. Read at main a0e658d. |
+| An approval restating the whole routing argument | Withdrawn and approving, since my checkout predated #4920. |
 
 ## Callouts
 
