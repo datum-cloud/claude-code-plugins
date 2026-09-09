@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.16.0] - 2026-09-09
+
+### Added
+
+- **Replying in a dispute** (`pr-conventions`, datum-platform). Rules for the reply to a review that contradicts a fact, drawn from a thread where five posts and seventeen hours settled one stale checkout. Pin the state you read before contradicting, answer a contradiction with its cause rather than more evidence, cite one proof per claim, state the fact without narrating how you learned it, and keep parentheses and restatement out. Three rewrites from the thread show the before and after.
+
 ## [1.15.0] - 2026-09-09
 
 ### Added
