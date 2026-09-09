@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.15.0] - 2026-09-09
+
+### Added
+
+- **Cross-service design patterns** (`platform-knowledge`, datum-platform). Six principles for how services relate to each other: directed dependency, resource projection, declaration versus evaluation, config-only status conditions, inline versus separate CRD, and technology-neutral APIs. The `plan` agent loads them when a feature spans more than one service, and `api-dev` loads them when projecting a resource into another service's API.
+
 ## [1.14.0] - 2026-09-07
 
 ### Added
