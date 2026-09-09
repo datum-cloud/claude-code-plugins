@@ -255,15 +255,15 @@ follow different rules from the evidence comment on your own work. Depth
 belongs in that evidence comment. A dispute reply carries one thing: why the
 two of you disagree.
 
-Pull request datum-cloud/infra#4968 shows the failure. Five posts, three
-reviews and two replies, and seventeen hours settled one fact, that the
-reviewer's checkout predated the merge which added the route under dispute.
+Pull request datum-cloud/infra#4968 shows the failure. Three reviews and two
+replies, over seventeen hours, settled one fact. The reviewer's checkout
+predated the merge which added the route under dispute.
 The decisive sentence came last in a reply that cited line numbers, a commit
 SHA, a render, and a live object. The gate does not measure comments, so these
 rules rest on the writer.
 
-The reply is addressed to a person, so an agent drafts it for the requester to
-send, and posts it only when the requester asks.
+The reply is addressed to a person, so the requester sends it. An agent drafts
+it, and posts it only on an explicit ask.
 
 **Pin your state before contradicting a fact.** Say what you read and when:
 `main at a0e658d`, `live production at 2026-09-09 17:45Z`, `staging overlay
@@ -302,14 +302,14 @@ reader is on the page. If your previous reply did not land, name the sentence
 the other side missed rather than saying it all again with more.
 
 **Fixed shapes.** A review that requests changes is a verdict, a reason, and an
-ask. A withdrawal is a correction, so the one-sentence rule above applies: the
-withdrawal, its cause, and the new verdict.
+ask. A withdrawal is a correction, so the correction rule above applies, and it
+is one line: the withdrawal, its cause, and the new verdict.
 
 | Posted | Rewrite |
 |---|---|
 | "the only route to the blackhole receiver matches cluster=us-central-1-lab, which is an edge lab cluster, not prod (prod's cluster label is prod-infrastructure-control-plane, set in production/kustomization.yaml). There is no route matching severity=info anywhere." | The only blackhole route matches `cluster=us-central-1-lab`. Nothing routes on `severity=info`. Read at main, 2026-09-08 09:00Z. |
-| A reply citing line numbers, a SHA, a render, and a live object | The info route merged in #4920 at 2026-09-08 18:34Z, and a checkout older than that does not have it. Read at main a0e658d. |
-| An approval restating the whole routing argument | Withdrawn and approving, since my checkout predated #4920. |
+| A reply citing line numbers, a SHA, a render, and a live object | The info route merged in #4920 at 2026-09-08 18:34Z, and a checkout older than that does not have it. Read on live production, 2026-09-09 17:45Z. |
+| An approval restating the whole routing argument | Withdrawn, since my checkout predated #4920, and approving. |
 
 ## Callouts
 
