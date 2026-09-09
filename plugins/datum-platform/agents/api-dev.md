@@ -7,7 +7,7 @@ description: >
   cmd/, internal/, or pkg/ directories. Use for running code generation,
   linting, and testing. Use AFTER architect has produced a design.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # API Developer Agent

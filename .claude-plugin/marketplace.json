@@ -10,7 +10,7 @@
     {
       "name": "datum-platform",
       "description": "Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment",
-      "version": "1.13.0",
+      "version": "1.14.0",
       "author": {
         "name": "Datum Cloud",
         "email": "engineering@datumcloud.io"

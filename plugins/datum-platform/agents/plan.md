@@ -6,7 +6,7 @@ description: >
   processing pipelines, and platform capabilities. Use BEFORE api-dev or
   other implementation agents. Outputs designs to .claude/pipeline/designs/.
 tools: Read, Write, Grep, Glob
-model: sonnet
+model: opus
 ---
 
 # Platform Architect Agent

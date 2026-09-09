@@ -15,6 +15,8 @@ argument-hint: "[feature-id|--diff <base>]"
 
 Quick-start code review with automatic context loading from the pipeline.
 
+The code-reviewer runs on the model its definition pins. Do not name one when invoking it, and treat a finding the same whatever model raised it. The `model-tiers` skill has the rule.
+
 ## Usage
 
 ```

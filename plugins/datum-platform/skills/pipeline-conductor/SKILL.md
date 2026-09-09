@@ -7,6 +7,8 @@ description: Covers pipeline orchestration for feature development including sta
 
 This skill covers pipeline orchestration for feature development.
 
+Every agent the pipeline routes to runs on the model its own definition pins, matched to the design risk of its stage rather than to the stage's importance. Do not name a model at a spawn. The `model-tiers` skill has the three tiers, the signal that picks each one, what an agent does when it meets a decision above its tier, and why a cheaper model never lowers the acceptance bar.
+
 ## Slash Commands
 
 Use these commands to orchestrate the pipeline:

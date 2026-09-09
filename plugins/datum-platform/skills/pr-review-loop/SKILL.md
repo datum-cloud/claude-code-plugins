@@ -1,7 +1,7 @@
 ---
 name: pr-review-loop
 description: >
-  Runs two read-only opus reviewers with different angles on a pull request,
+  Runs two read-only reviewers with different angles on a pull request,
   compares their verdicts, and either spawns the fixer to carry the PR to
   auto-merge or puts the choice to a human. Trigger on "review this PR",
   "double review", "two reviewers", "run the review agents", "I just opened a
@@ -15,7 +15,7 @@ description: >
 
 A session that writes a change is the worst judge of it. This skill runs two reviewers that do not know about each other on every pull request the session opens, then acts on what they agree on and asks a person about the rest.
 
-The reviewers are agents, so their model pin and read-only posture hold every time they run. Their tool lists do not restrict Bash. The plugin hook refuses the GitHub write surface, git mutations, and shell wrappers for the reviewer agents as a backstop against an accidental write; a determined agent could still evade it, so the reviewers' prompts carry the rule and the branch ruleset's human approval is the last gate. This skill is the protocol around them, and it holds only when the session follows it. Follow it.
+The reviewers are agents, so their model pin and read-only posture hold every time they run. Both reviewers run on sonnet, because each works from an explicit brief against a diff that already exists, and a finding a person has to decide leaves the loop rather than being settled inside it. The fixer also pins sonnet, but the session classifies the agreed findings against `model-tiers`' simple definition before spawning it and passes `model: haiku` at that one spawn when every finding qualifies; do not override a pin anywhere else in this loop. Their tool lists do not restrict Bash. The plugin hook refuses the GitHub write surface, git mutations, and shell wrappers for the reviewer agents as a backstop against an accidental write; a determined agent could still evade it, so the reviewers' prompts carry the rule and the branch ruleset's human approval is the last gate. This skill is the protocol around them, and it holds only when the session follows it. Follow it.
 
 ## When to run
 
@@ -67,9 +67,11 @@ While they run, keep working. When both notifications arrive, read both reports 
 
 ## Compare and act
 
-Apply `${CLAUDE_PLUGIN_ROOT}/skills/pr-review-loop/protocol.md`. In short: check the five agreement conditions and the always-escalate list, then either spawn `pr-review-fixer` for its fix phase with both reports and say in one line what it is doing, or put the choice to the user with a recommendation and act on the answer.
+Apply `${CLAUDE_PLUGIN_ROOT}/skills/pr-review-loop/protocol.md`. In short: check the five agreement conditions and the always-escalate list, then either classify the agreed findings against `model-tiers` and spawn `pr-review-fixer` for its fix phase (with `model: haiku` when every finding is simple) with both reports and say in one line what it is doing, or put the choice to the user with a recommendation and act on the answer.
 
-When the fixer pushes a fix for any `blocker` or `warning`, fetch the new head the same way and launch both reviewers once more on it, with the same prompt and the same conditions. Only two `merge` verdicts, or two `hold` with nothing left above `nit`, unlock the fixer's ready phase. That is one re-review, not a loop: a second `hold` with a `blocker` or `warning` still standing goes to the user with both reports and a recommendation.
+When the fixer pushes a fix for any `blocker` or `warning`, fetch the new head the same way and launch the second pass on it: `pr-rereviewer` in place of a fresh `pr-adversary`, alongside `pr-conventions-reviewer`. Hand the re-reviewer the head it is checking, the head that one replaced, and the findings from both first-pass reports that the fixer applied. It settles each of those against evidence at the new head and makes one narrow pass over the fix diff, rather than reviewing the whole pull request again, which the first pass already did. The five conditions apply to the two reports unchanged, so only two `merge` verdicts, or two `hold` with nothing left above `nit`, unlock the fixer's ready phase. That is one re-review, not a loop: a second `hold` with a `blocker` or `warning` still standing goes to the user with both reports and a recommendation.
+
+A pull request that has fallen behind its base, or that a reviewer reports colliding with another open pull request, goes to `pr-rebaser` before the ready phase. It rebases in the worktree that holds the branch, keeps both sides' intent in every conflict, reruns the validators the touched paths map to, and pushes with lease. A conflict that needs a design decision comes back to the user rather than being guessed.
 
 Never post a reviewer's report to GitHub yourself. The fixer posts one comment at the end of its ready phase, and that is the only comment the loop produces.
 
@@ -90,5 +92,6 @@ Both reviewers return the same shape, defined once in `${CLAUDE_PLUGIN_ROOT}/ski
 ## Files
 
 - `protocol.md`: the output contract, the severity table, the five agreement conditions, the always-escalate list, the re-review step, and the fix and ready path.
-- `agents/pr-adversary.md`, `agents/pr-conventions-reviewer.md`, `agents/pr-review-fixer.md`: the three agents this skill drives.
+- `agents/pr-adversary.md`, `agents/pr-conventions-reviewer.md`, `agents/pr-review-fixer.md`: the three agents the first pass and the fix path use.
+- `agents/pr-rereviewer.md`: the second pass over a fixed head. `agents/pr-rebaser.md`: the rebase when the branch falls behind or collides.
 - `commands/pr-review.md`: the `/pr-review` entry point.

@@ -7,7 +7,7 @@ description: >
   consumer-facing resource management, or any
   browser-based tooling.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # Frontend Developer Agent

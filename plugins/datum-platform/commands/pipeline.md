@@ -48,6 +48,8 @@ request → discovery → spec → pricing → design → ui-patterns →
 | document | tech-writer | announce |
 | announce | gtm-comms | document |
 
+Each agent runs on the model its definition pins. Do not name a model when routing a stage; the `model-tiers` skill has the tiers, the signal that picks each one, and what an agent does when it meets a decision above its tier.
+
 ## Command Workflows
 
 ### `/pipeline start <name>`

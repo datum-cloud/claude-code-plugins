@@ -17,6 +17,8 @@ argument-hint: "[vX.Y.Z] [--draft] [--patch|--minor|--major]"
 
 Generate and publish a new GitHub release for this repository.
 
+Cutting a release follows the recipe below, so it runs on sonnet. Where the recipe does not fit, such as a version that needs a judgment call or a preflight that fails for a reason not listed here, stop and report rather than improvising. The `model-tiers` skill has the tiers and the escalation rule.
+
 ## Usage
 
 ```

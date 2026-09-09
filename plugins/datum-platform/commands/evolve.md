@@ -16,6 +16,8 @@ argument-hint: "[--dry-run|--since <days>|--pattern <name>|--agent <name>]"
 
 Extracts patterns from accumulated findings and evolves agent runbooks with learned knowledge.
 
+This runs on opus. Promoting a pattern writes guidance every later agent then follows, so a wrong call here costs review rounds on work not yet written. The `model-tiers` skill has the tiers and the signal that picks each one.
+
 ## Usage
 
 ```

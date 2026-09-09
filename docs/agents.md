@@ -37,8 +37,17 @@ flowchart LR
     sre -->|deployed| comms
 ```
 
+## Model Tiers
+
+Each agent pins a model matched to its task's design risk, not to the task's importance. Authoring a change carries design risk, because a wrong approach costs a review round or a bad release, so `plan`, `api-dev`, `frontend-dev`, and `sre` run on opus. Reviewing, fixing agreed findings, writing to a brief, and cutting a release from a recipe are bounded by criteria that already exist, so those agents run on sonnet. Lookups and monitors run on haiku, spawned ad hoc rather than pinned.
+
+An agent that meets a decision above its tier stops and reports it instead of deciding, and the orchestrator escalates. The model is a cost choice and never an acceptance bar: the same gates apply whatever raised a finding.
+
+The full rule lives in the `model-tiers` skill, with a table of what every agent gets today.
+
 ## Table of Contents
 
+- [Model tiers](#model-tiers)
 - [product-discovery](#product-discovery)
 - [commercial-strategist](#commercial-strategist)
 - [plan (Architect)](#plan-architect)
@@ -223,7 +232,7 @@ When the service profile declares platform capabilities, the test-engineer adds 
 
 **When to use:** After api-dev, frontend-dev, or sre complete changes. Use when someone says "review this" or "is this ready to merge." This agent is the quality gate before code merges.
 
-The code-reviewer is read-only — it produces findings but never modifies code. It runs in `plan` mode and uses the `opus` model for the thoroughness the role requires.
+The code-reviewer is read-only — it produces findings but never modifies code. It runs on `sonnet`, because it works from an explicit brief against a diff that already exists; a finding that turns on a design decision goes back rather than being settled in the review. See [Model tiers](#model-tiers) for how every agent's model is chosen.
 
 **Review dimensions:**
 

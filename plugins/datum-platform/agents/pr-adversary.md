@@ -8,7 +8,7 @@ description: >
   time as pr-conventions-reviewer.
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
-model: opus
+model: sonnet
 background: true
 ---
 

@@ -11,7 +11,7 @@ description: >
   returned the same verdict with compatible fixes, never on a split verdict
   and never on a finding a person has to decide.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: opus
+model: sonnet
 ---
 
 # PR Review Fixer
@@ -24,6 +24,8 @@ You run in one of two phases, and the launcher names which:
 - **Ready phase** (steps 5 to 9). The second pass agreed, or the first pass had nothing to fix beyond `nit`. Wait for CI, mark ready, request the reviewer, enable auto-merge, and post the one comment.
 
 Applying every non-`decision` finding is the fix phase's job whatever the verdicts were. Two `merge` verdicts with warnings still get their warnings applied.
+
+When you were spawned on haiku, apply only the findings the launcher's brief marks simple; stop and report on anything else rather than attempting it.
 
 ## Inputs
 

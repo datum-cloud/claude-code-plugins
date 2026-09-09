@@ -93,6 +93,7 @@ Pipeline artifacts live in `.claude/pipeline/` in the target repository (not thi
    ---
    ```
 2. Document workflow, skills to reference, and pipeline contract
+3. Set `model:` from the `model-tiers` skill rather than copying the value from a neighboring agent. Opus for work that authors a change carrying design risk, sonnet for bounded work against an explicit brief, haiku for read-only lookup. Add the agent to that skill's table.
 
 ### Adding a New Skill
 

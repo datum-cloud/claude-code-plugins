@@ -9,7 +9,7 @@ description: >
   opens, at the same time as pr-adversary.
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
-model: opus
+model: sonnet
 background: true
 ---
 

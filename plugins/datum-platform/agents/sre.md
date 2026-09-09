@@ -7,7 +7,7 @@ description: >
   OCIRepository configuration, and any infrastructure-as-code changes.
   Use for anything in config/, .github/, Dockerfile, or infra repository changes.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # SRE Agent
