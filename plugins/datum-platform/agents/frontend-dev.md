@@ -6,7 +6,7 @@ description: >
   code changes. Use for building admin UIs, service provider portals,
   consumer-facing resource management, or any
   browser-based tooling.
-tools: Read, Write, Edit, Grep, Glob, Bash
+tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 model: opus
 ---
 

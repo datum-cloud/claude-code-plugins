@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.16.0] - 2026-09-09
+
+### Changed
+
+- **Authoring agents can spawn subagents.** `plan`, `sre`, `api-dev`, `frontend-dev`, `tech-writer`, and `test-engineer` now carry `Agent` in their tool lists, so one that opens a pull request runs the review loop itself before returning, as the loop skill already said it could. Every read-only reviewer and every agent that works from settled findings still withholds `Agent`, because the write-refusing hook matches the running agent's type and a child would pass it. `model-tiers` gains a section stating which agents nest, why the rest do not, and why the default three-layer depth stays.
+
 ## [1.14.0] - 2026-09-07
 
 ### Added

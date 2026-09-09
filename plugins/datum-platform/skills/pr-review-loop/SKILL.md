@@ -19,7 +19,7 @@ The reviewers are agents, so their model pin and read-only posture hold every ti
 
 ## When to run
 
-Run the loop on every pull request this session opens, including one a subagent opened on the session's behalf. Run it when the user asks with any of the trigger phrases above, or types `/pr-review`. A subagent that opens a PR can run the loop itself, since a subagent can spawn subagents, and does not need to come back to the main session first.
+Run the loop on every pull request this session opens, including one a subagent opened on the session's behalf. Run it when the user asks with any of the trigger phrases above, or types `/pr-review`. An authoring agent that opens a PR runs the loop itself before it returns: `plan`, `sre`, `api-dev`, `frontend-dev`, `tech-writer`, and `test-engineer` carry `Agent` in their tool lists for this. Every other plugin agent withholds `Agent`, so a PR opened any other way comes back to the session, which runs the loop. `model-tiers` says which agents nest and why the reviewers never do.
 
 The unit of review is one PR against one base SHA. A push after the review ran means a new review.
 

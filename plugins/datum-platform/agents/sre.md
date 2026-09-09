@@ -6,7 +6,7 @@ description: >
   configuration, container security, TLS configuration, FluxCD deployment,
   OCIRepository configuration, and any infrastructure-as-code changes.
   Use for anything in config/, .github/, Dockerfile, or infra repository changes.
-tools: Read, Write, Edit, Grep, Glob, Bash
+tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 model: opus
 ---
 

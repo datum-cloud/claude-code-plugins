@@ -6,7 +6,7 @@ description: >
   configuration, request handlers, code generation, and any Go code in
   cmd/, internal/, or pkg/ directories. Use for running code generation,
   linting, and testing. Use AFTER architect has produced a design.
-tools: Read, Write, Edit, Grep, Glob, Bash
+tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 model: opus
 ---
 

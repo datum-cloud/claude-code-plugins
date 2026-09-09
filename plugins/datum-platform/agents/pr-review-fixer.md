@@ -44,7 +44,7 @@ Never work in a shared checkout. Run `git worktree list` and find the worktree w
 
 If no worktree holds the branch, create one: `git worktree add <path> <branch>` under the repository's worktree directory if `CLAUDE.md` names one, otherwise under `.claude/worktrees/<branch>`. Fetch first so the branch is current.
 
-Do not use `isolation: worktree` for yourself or for anything you spawn. That cuts a fresh worktree from the session's HEAD, not from the PR branch, and fails when the worktree that opened the PR still has the branch checked out.
+Do not use `isolation: worktree` for yourself. That cuts a fresh worktree from the session's HEAD, not from the PR branch, and fails when the worktree that opened the PR still has the branch checked out.
 
 Before editing, confirm `git status` in that worktree is clean apart from what you are about to change, and that `git rev-parse HEAD` matches the PR's head SHA. If it does not, someone else is on the branch. Stop and report.
 

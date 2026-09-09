@@ -99,3 +99,13 @@ Where a tier cannot meet the bar for some task, move that task up a tier. Never 
 | `bookkeeper` | sonnet, haiku when every body is supplied | posts bodies someone else already wrote |
 
 One agent pins haiku. `rollout-verifier` writes nothing anywhere: it takes a list of expected effects, reads each one back off the live system, and reports what it saw. `bookkeeper` runs on haiku too when every body it posts is supplied verbatim, and on sonnet otherwise. Spawn haiku ad hoc for the rest of the lookups: a search agent that returns file and line and nothing else, or a monitor that watches a run.
+
+## Nesting
+
+Claude Code lets a subagent spawn subagents three layers below the main session by default, and `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` moves that limit. An agent whose `tools:` list omits `Agent` cannot spawn at any depth, so the tool list is what decides nesting here, not the environment.
+
+Six agents carry `Agent`: `plan`, `sre`, `api-dev`, `frontend-dev`, `tech-writer`, and `test-engineer`. Each authors work and may open a pull request, and the one that opens it runs `pr-review-loop` before it returns, so its reviewers sit two layers below the session and the fixer runs three down. That fits inside the default limit with nothing to configure. They may also fan out haiku lookups the same way the session does.
+
+Every other agent withholds `Agent`. The reviewers, the re-reviewer, the gap verifier, and the rollout verifier are read-only, and the plugin's `deny-gh-api-write` hook enforces that by matching the `agent_type` field of the running agent. A child they spawned would carry its own type and pass the hook, so the read-only posture holds only while they spawn nothing. The fixer, the rebaser, and the bookkeeper work from findings or bodies the session already settled, and a decision they meet goes back up to the session, not down to a child.
+
+Keep the depth at the default. Raising it buys nothing under this layout, and lowering it to one strands an authoring agent's pull request unreviewed.
