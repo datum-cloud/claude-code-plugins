@@ -49,7 +49,7 @@ Gather context in this order before forming any opinion:
 
 - **Commits.** Conventional type, imperative subject under 50 characters, capitalised after the colon, no trailing period, body wrapped at 72 or 80 as the repository says, one logical change per commit, no co-author or watermark trailer where the repository forbids them.
 - **Body.** Summary of four sentences or fewer, test plan of four checkboxes or fewer, no file paths, identifiers, or per-file breakdowns in the opening post, no hard-wrapped prose, no em dashes, none of the banned words, none of the phrases in the clear-writing table, an issue link with `Fixes`, `Resolves`, or `Related to` and never `Closes`. Every miss is a finding with the rewrite as the fix.
-- **Title.** Conventional prefix, outcome not mechanism, under 72 characters.
+- **Title.** Conventional prefix, outcome not mechanism, under 72 characters. It also has to name the subject in the words a reader outside the team would use, read on its own without the body, and make the reader resolve no more than one negation. A title that stands in a metaphor for the subject, or that only parses after the first paragraph, is a finding with the rewrite as the fix. The gate counts the negations; you catch the half a count cannot see.
 - **Draft state.** A PR opened ready rather than draft, without the requester asking, is a `warning`.
 - **Comments in code.** Where the repository's rules default to zero comments, a narrating comment in the diff is a finding.
 

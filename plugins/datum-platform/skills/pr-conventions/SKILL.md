@@ -16,6 +16,7 @@ Countable, so it can be checked rather than believed:
 
 | Limit | Applies to |
 |---|---|
+| Title: **1 negation or fewer**, and it names the subject | PR and issue titles |
 | Summary: **4 sentences or fewer**, spread across paragraphs rather than massed in one | PR and issue bodies, before the next heading |
 | Test plan: **4 checkboxes or fewer** | PRs; behavioral outcomes only, build/lint/test collapse to one row |
 | **No** file paths, identifiers, per-file breakdowns, or local tool invocations | PR and issue bodies |
@@ -178,6 +179,14 @@ characters. Describe the outcome, not the mechanism.
 Issue titles state the symptom in plain language: `Users can't see who last
 modified a resource`, not `NullPointerException in ResourceController`.
 
+The title carries its own countable rule, and `clear-writing` owns it: name the
+subject in the words a reader outside the team would use, keep the title
+readable without the body, and make the reader resolve at most one negation.
+`pr-op-gate` counts the negations and refuses a second one.
+
+**Good:** `fix: Stop the edge from holding every DNS snapshot in memory`
+**Avoid:** `fix: Nothing stops the edge from never releasing a snapshot`
+
 ## Linking
 
 Every PR links the issue it addresses. Required.
@@ -318,20 +327,22 @@ Never an emoji header (`## ⚠️ ...`). If everything is highlighted, nothing i
 
 ## Editing a post you did not write
 
-On an edit, `pr-op-gate` reads the body already posted and scores it on the same
-rules as the body you are about to post. It refuses only where your version
-scores worse. Ticking a checkbox on a post written before the convention passes.
-Adding an em dash to that same post does not.
+On an edit, `pr-op-gate` reads the title and body already posted and scores them
+on the same rules as the version you are about to post. It refuses only where
+your version scores worse. Ticking a checkbox on a post written before the
+convention passes. Adding an em dash to that same post does not.
 
 So the misses that predate your change are not yours to fix, and the answer to a
-colleague's unformatted issue is never to rewrite their words.
+colleague's unformatted issue is never to rewrite their words. Retitling a post
+that already carried two negations passes as long as your title carries no more
+than the one it replaces.
 
-An edit that touches only labels, a title, or a milestone is never measured
-against body rules at all.
+An edit that touches only labels or a milestone is never measured at all.
 
-When the gate cannot read the posted body, from a failed fetch or a target it
-cannot resolve, it allows the edit and says so, listing what the body it is
-about to post misses. Fix whatever your edit introduced and leave the rest.
+When the gate cannot read the posted title or body, from a failed fetch or a
+target it cannot resolve, it allows the edit and says so, listing what the
+version it is about to post misses. Fix whatever your edit introduced and leave
+the rest.
 
 There is no route around the gate, and no need for one. A body you are authoring
 gets fixed, not bypassed.

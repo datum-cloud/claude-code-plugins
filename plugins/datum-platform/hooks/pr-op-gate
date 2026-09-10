@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 # PreToolUse gate for `gh pr|issue create|edit`.
 #
-# Measures the body being posted against the countable rules in the
-# pr-conventions skill. A create is measured against an empty baseline, so it
-# has to meet the bar outright. An edit is measured against the body already
-# posted and is refused only on dimensions where it scores worse, so a state
-# update to a post written before the convention, or by someone else, passes.
-# Style guidance that cannot be counted rides along as advisory context.
+# Measures the title and the body being posted against the countable rules in
+# the pr-conventions skill. A create is measured against an empty baseline, so
+# it has to meet the bar outright. An edit is measured against the title and
+# body already posted and is refused only on dimensions where it scores worse,
+# so a state update to a post written before the convention, or by someone
+# else, passes. Style guidance that cannot be counted rides along as advisory
+# context.
 #
-# The phrase table comes from the clear-writing skill, so the doc and the gate
+# The title carries a second count: how many negations it makes the reader
+# resolve. One is readable. Two turns the title into a puzzle whose answer is
+# the thing the title should have named.
+#
+# Both word tables come from the clear-writing skill, so the doc and the gate
 # cannot drift apart. An empty table is a refusal, never a pass.
 
 set -uo pipefail
@@ -21,11 +26,15 @@ KIND="${BASH_REMATCH[1]}"
 VERB="${BASH_REMATCH[2]}"
 
 DIMENSIONS=15
+TITLE_DIMENSIONS=3
+NEGATION_CAP=1
 
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 PHRASE_SOURCE="$PLUGIN_ROOT/skills/clear-writing/SKILL.md"
 
 ADVICE='Writing rules for this body (datum-platform:pr-conventions and clear-writing): answer what, who, when, where, how, why, and how much; cut every word carrying no fact; short word over long; verbs over -tion nouns; active over passive; numbers over adjectives; one idea per paragraph; short paragraphs whose length varies, rather than a dense block or a run of the same length; no "simply"/"just"/"easily"; no em dashes, no "load-bearing", no "gotchas", no "structural", no "why it matters" label, no "kept it honest"; none of the wordy phrases, Latin tags, or jargon in the clear-writing table; a colon only where a period will not do, and a semicolon only where a comma or a period will not; an ordered list rather than arrows for a sequence; say it once, so anything already in the linked issue gets linked, not restated. Depth belongs in a comment or the commit message.'
+
+TITLE_ADVICE='Writing rules for the title: name the subject the post is about, in the words a reader outside the team would use for it, rather than a phrase that stands in for it; make the title readable on its own, without the body; state what is broken or what changes, not what is absent; and keep it under 72 characters.'
 
 emit() {
   jq -n --arg ctx "$1" '{
@@ -63,20 +72,131 @@ extract_body() {
   printf '%s' "$COMMAND" | sed -n -E "s/.*(--body|-b)[= ]+'([^']*)'.*/\2/p" | head -1
 }
 
-load_phrases() {
-  LC_ALL=C awk -F'|' '
-/^## / { on = ($0 ~ /^## Phrases the gate refuses/); next }
+extract_title() {
+  local raw
+  raw=$(printf '%s' "$COMMAND" | grep -oE "(--title|(^|[[:space:]])-t)[= ]+('[^']*'|\"[^\"]*\"|[^[:space:]]+)" | head -1)
+  [ -n "$raw" ] || return 0
+  raw=$(printf '%s' "$raw" | sed -E "s/^[[:space:]]*(--title|-t)[= ]+//")
+  unquote "$raw"
+}
+
+load_table() {
+  LC_ALL=C awk -F'|' -v want="$1" -v header="$2" '
+/^## / { on = ($0 ~ want); next }
 !on || $0 !~ /^\|/ { next }
 {
   gsub(/^[ \t]+|[ \t]+$/, "", $2)
   gsub(/^[ \t]+|[ \t]+$/, "", $3)
 }
-$2 == "Phrase" || $2 ~ /^-+$/ { next }
+$2 == header || $2 ~ /^-+$/ { next }
 {
   n = split($2, forms, / \/ /)
   for (i = 1; i <= n; i++) printf "%s\t%s\n", tolower(forms[i]), $3
 }
 ' "$PHRASE_SOURCE"
+}
+
+load_phrases() {
+  load_table "^## Phrases the gate refuses" "Phrase"
+}
+
+load_negations() {
+  load_table "^## Negations the title gate counts" "Word"
+}
+
+measure_title() {
+  LC_ALL=C awk -v curly="$(printf '\xe2\x80\x99')" '
+FNR == 1 { filenum++ }
+
+filenum == 1 {
+  t = index($0, "\t")
+  if (t > 0) negword[tolower(substr($0, 1, t - 1))] = 1
+  next
+}
+
+filenum == 2 {
+  t = index($0, "\t")
+  if (t == 0) next
+  np++
+  phrase[np] = substr($0, 1, t - 1)
+  fix[np] = substr($0, t + 1)
+  esc = ""
+  for (k = 1; k <= length(phrase[np]); k++) {
+    c = substr(phrase[np], k, 1)
+    esc = esc (c == "." ? "[.]" : c)
+  }
+  re[np] = "(^|[^a-z])" esc "([^a-z]|$)"
+  next
+}
+
+{
+  n = split($0, part, "`")
+  prose = ""
+  for (j = 1; j <= n; j += 2) prose = prose " " part[j]
+  prose = tolower(prose) " "
+  gsub(/https?:\/\/[^ )]*/, "", prose)
+
+  for (k = 1; k <= np; k++) {
+    cnt = gsub(re[k], "&", prose)
+    if (cnt == 0) continue
+    wordy += cnt
+    if (seen[k]) continue
+    seen[k] = 1
+    hits = hits (hits == "" ? "" : "|") "\"" phrase[k] "\" (write: " fix[k] ")"
+  }
+
+  gsub(curly, "'"'"'", prose)
+  gsub(/[^a-z'"'"']/, " ", prose)
+  nw = split(prose, word, / +/)
+  for (i = 1; i <= nw; i++) {
+    if (word[i] == "") continue
+    if (word[i] in negword) { neg++; continue }
+    if (word[i] ~ /n'"'"'t$/ && length(word[i]) > 3) neg++
+  }
+}
+
+END {
+  printf "negations\t%d\n", neg
+  printf "titlewordy\t%d\n", wordy
+  printf "titlewordyhits\t%s\n", hits
+}
+' "$NEGATIONS" "$PHRASES" -
+}
+
+compare_title() {
+  awk -F'\t' -v mode="$1" -v want="$TITLE_DIMENSIONS" -v negcap="$NEGATION_CAP" '
+function over(v, cap) { return (v > cap) ? v - cap : 0 }
+function worse(d, cap) { return over(cur[d], cap) > over(base[d], cap) }
+
+FNR == NR { base[$1] = $2; basen++; next }
+{ cur[$1] = $2; curn++ }
+
+END {
+  if (basen != want || curn != want) {
+    print "gate could not measure both titles on all " want " dimensions" > "/dev/stderr"
+    exit 3
+  }
+
+  if (worse("negations", negcap)) {
+    if (mode == "edit")
+      printf "- Edit raises the negation count in the title from %d to %d, against a cap of %d. A reader resolves every one of them before reaching the subject.\n", base["negations"], cur["negations"], negcap
+    else
+      printf "- Title makes the reader resolve %d negations, against a cap of %d. Say what is broken or what changes, and name the subject in the words a reader outside the team would use.\n", cur["negations"], negcap
+  }
+  if (worse("titlewordy", 0)) {
+    nb = split(base["titlewordyhits"], bh, "|")
+    for (i = 1; i <= nb; i++) inbase[bh[i]] = 1
+    nc = split(cur["titlewordyhits"], ch, "|")
+    list = ""
+    for (i = 1; i <= nc; i++) if (!(ch[i] in inbase)) list = list (list == "" ? "" : "; ") ch[i]
+    if (list == "") { list = cur["titlewordyhits"]; gsub(/\|/, "; ", list) }
+    if (mode == "edit")
+      printf "- Edit adds wording the clear-writing skill refuses to the title: %s.\n", list
+    else
+      printf "- Title uses wording the clear-writing skill refuses: %s.\n", list
+  }
+}
+' "$2" "$3"
 }
 
 measure() {
@@ -353,8 +473,8 @@ run_bounded() {
   fi
 }
 
-fetch_live_body() {
-  local selector repo workdir out
+fetch_live_field() {
+  local field="$1" selector repo workdir out
   selector=$(target_selector)
   repo=$(unquote "$(printf '%s' "$COMMAND" | sed -n -E 's/.*(--repo|-R)[= ]+([^ ]+).*/\2/p' | head -1)")
   workdir=$(unquote "$(printf '%s' "$COMMAND" | sed -n -E 's/^[[:space:]]*cd[[:space:]]+([^ ]+)[[:space:]]*&&.*/\1/p' | head -1)")
@@ -365,81 +485,134 @@ fetch_live_body() {
   view=(gh "$KIND" view)
   [ -n "$selector" ] && view+=("$selector")
   [ -n "$repo" ] && view+=(--repo "$repo")
-  view+=(--json body)
+  view+=(--json "$field")
 
   out=$(
     if [ -n "$workdir" ] && [ -d "$workdir" ]; then cd "$workdir" || exit 1; fi
     run_bounded "${view[@]}" 2>/dev/null
   ) || return 1
 
-  printf '%s' "$out" | jq -e -r '.body // ""' 2>/dev/null
+  printf '%s' "$out" | jq -e -r --arg f "$field" '.[$f] // ""' 2>/dev/null
 }
 
 BODY=$(extract_body)
+TITLE=$(extract_title)
 
-if [ -z "${BODY//[[:space:]]/}" ]; then
-  emit "$ADVICE"
+HAS_BODY=""; [ -n "${BODY//[[:space:]]/}" ] && HAS_BODY="yes"
+HAS_TITLE=""; [ -n "${TITLE//[[:space:]]/}" ] && HAS_TITLE="yes"
+
+GUIDANCE="$ADVICE"
+[ -n "$HAS_TITLE" ] && GUIDANCE="$TITLE_ADVICE $ADVICE"
+[ -n "$HAS_TITLE" ] && [ -z "$HAS_BODY" ] && GUIDANCE="$TITLE_ADVICE"
+
+if [ -z "$HAS_BODY" ] && [ -z "$HAS_TITLE" ]; then
+  emit "$GUIDANCE"
   exit 0
 fi
 
-WORK=$(mktemp -d) || { emit "$ADVICE"; exit 0; }
+WORK=$(mktemp -d) || { emit "$GUIDANCE"; exit 0; }
 trap 'rm -rf "$WORK"' EXIT
 
 PHRASES="$WORK/phrases"
 load_phrases > "$PHRASES" 2>/dev/null
 if [ ! -s "$PHRASES" ]; then
-  deny "The datum-platform gate could not load the phrase table from the clear-writing skill, so it refused rather than pass this body unchecked. Report the gate failure instead of retrying the same call."
+  deny "The datum-platform gate could not load the phrase table from the clear-writing skill, so it refused rather than pass this post unchecked. Report the gate failure instead of retrying the same call."
   exit 0
 fi
 
-printf '%s\n' "$BODY" | measure > "$WORK/cur"
+NEGATIONS="$WORK/negations"
+load_negations > "$NEGATIONS" 2>/dev/null
+if [ ! -s "$NEGATIONS" ]; then
+  deny "The datum-platform gate could not load the negation table from the clear-writing skill, so it refused rather than pass this post unchecked. Report the gate failure instead of retrying the same call."
+  exit 0
+fi
+
+REFUSED=""
+ADVISORY=""
+
+collect() {
+  local unverified="$1" findings="$2"
+  [ -n "$findings" ] || return 0
+  if [ -n "$unverified" ]; then
+    ADVISORY="${ADVISORY:+$ADVISORY
+}$findings"
+  else
+    REFUSED="${REFUSED:+$REFUSED
+}$findings"
+  fi
+}
 
 MODE="create"
-printf '' | measure > "$WORK/base"
 
-UNVERIFIED=""
-if [ "$VERB" = "edit" ]; then
-  if LIVE=$(fetch_live_body); then
-    MODE="edit"
-    printf '%s\n' "$LIVE" | measure > "$WORK/base"
-  else
-    UNVERIFIED="yes"
+if [ -n "$HAS_TITLE" ]; then
+  printf '%s\n' "$TITLE" | measure_title > "$WORK/tcur"
+  printf '' | measure_title > "$WORK/tbase"
+
+  TITLE_MODE="create"
+  TITLE_UNVERIFIED=""
+  if [ "$VERB" = "edit" ]; then
+    if LIVE_TITLE=$(fetch_live_field title); then
+      TITLE_MODE="edit"
+      MODE="edit"
+      printf '%s\n' "$LIVE_TITLE" | measure_title > "$WORK/tbase"
+    else
+      TITLE_UNVERIFIED="yes"
+    fi
   fi
-fi
 
-VIOLATIONS=$(compare "$MODE" "$WORK/base" "$WORK/cur" 2>/dev/null)
-RC=$?
-
-if [ "$RC" -ne 0 ]; then
-  deny "The datum-platform:pr-conventions gate could not measure this body, so it refused rather than pass it unchecked. Report the gate failure instead of retrying the same call."
-  exit 0
-fi
-
-if [ -n "$UNVERIFIED" ]; then
-  if [ -n "$VIOLATIONS" ]; then
-    emit "The posted body could not be read, so this edit was allowed through without comparing it. The body you are about to post misses the datum-platform:pr-conventions bar here:
-
-$VIOLATIONS
-Fix whichever of those your edit introduced. Leave alone anything that was already in the post. $ADVICE"
-  else
-    emit "$ADVICE"
+  TITLE_VIOLATIONS=$(compare_title "$TITLE_MODE" "$WORK/tbase" "$WORK/tcur" 2>/dev/null)
+  if [ $? -ne 0 ]; then
+    deny "The datum-platform:pr-conventions gate could not measure this title, so it refused rather than pass it unchecked. Report the gate failure instead of retrying the same call."
+    exit 0
   fi
-  exit 0
+  collect "$TITLE_UNVERIFIED" "$TITLE_VIOLATIONS"
 fi
 
-if [ -n "$VIOLATIONS" ]; then
+if [ -n "$HAS_BODY" ]; then
+  printf '%s\n' "$BODY" | measure > "$WORK/cur"
+  printf '' | measure > "$WORK/base"
+
+  BODY_MODE="create"
+  UNVERIFIED=""
+  if [ "$VERB" = "edit" ]; then
+    if LIVE=$(fetch_live_field body); then
+      BODY_MODE="edit"
+      MODE="edit"
+      printf '%s\n' "$LIVE" | measure > "$WORK/base"
+    else
+      UNVERIFIED="yes"
+    fi
+  fi
+
+  VIOLATIONS=$(compare "$BODY_MODE" "$WORK/base" "$WORK/cur" 2>/dev/null)
+  if [ $? -ne 0 ]; then
+    deny "The datum-platform:pr-conventions gate could not measure this body, so it refused rather than pass it unchecked. Report the gate failure instead of retrying the same call."
+    exit 0
+  fi
+  collect "$UNVERIFIED" "$VIOLATIONS"
+fi
+
+if [ -n "$REFUSED" ]; then
   if [ "$MODE" = "edit" ]; then
-    deny "This edit moves the posted body further from the datum-platform:pr-conventions bar:
+    deny "This edit moves the posted title or body further from the datum-platform:pr-conventions bar:
 
-$VIOLATIONS
-An edit only has to leave the body no worse than it found it, so revise what the edit adds. Anything already in the post is not yours to fix. $ADVICE"
+$REFUSED
+An edit only has to leave the post no worse than it found it, so revise what the edit adds. Anything already in the post is not yours to fix. $GUIDANCE"
   else
-    deny "This body misses the datum-platform:pr-conventions bar:
+    deny "This post misses the datum-platform:pr-conventions bar:
 
-$VIOLATIONS
-Revise it and post again. $ADVICE"
+$REFUSED
+Revise it and post again. $GUIDANCE"
   fi
   exit 0
 fi
 
-emit "$ADVICE"
+if [ -n "$ADVISORY" ]; then
+  emit "The posted version could not be read, so this edit was allowed through without comparing it. What you are about to post misses the datum-platform:pr-conventions bar here:
+
+$ADVISORY
+Fix whichever of those your edit introduced. Leave alone anything that was already in the post. $GUIDANCE"
+  exit 0
+fi
+
+emit "$GUIDANCE"
