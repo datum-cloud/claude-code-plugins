@@ -2,6 +2,16 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.17.0] - 2026-09-10
+
+### Added
+
+- **Titles are measured** (`clear-writing`, `pr-conventions`, `pr-op-gate`, datum-platform). The title is the one line every reader reads, and until now nothing checked it. `clear-writing` gains the rules: name the subject in the words a reader outside the team would use, make the title readable without the body, and make the reader resolve at most one negation. `pr-op-gate` now reads `--title` on `gh pr|issue create|edit`, counts negations against a cap of one, and applies the refused-phrase table to the title as well as the body. The negation words come from a table in the skill, so the doc and the gate cannot drift apart, and a missing table is a refusal rather than a pass. `pr-conventions-reviewer` catches what a count cannot: a title that names a metaphor instead of its subject, or that only parses after the first paragraph.
+
+### Changed
+
+- **A title-only edit is measured now.** It used to pass unread. An edit is still judged on what it adds, so retitling a post that already carried two negations passes as long as the new title carries no more than the old one.
+
 ## [1.16.0] - 2026-09-09
 
 ### Added

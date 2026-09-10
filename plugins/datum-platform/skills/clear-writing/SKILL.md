@@ -118,6 +118,55 @@ person, the actual number.
 **Numbers beat adjectives.** "Performance improved substantially" tells the
 reader nothing. "Load time dropped from 4.1s to 0.9s" tells them everything.
 
+## Titles and headings
+
+Every rule above applies to a title, and applies harder. The title is the one
+line everyone reads, it is what the reader sees in a list of forty others, and
+it is the only part with no room to recover from a bad first sentence.
+
+**Name the subject.** Use the word a reader outside the team would use for the
+thing, and use it in the title, not in the third paragraph. A phrase that
+stands in for the subject reads as a riddle, and the reader who cannot solve
+it concludes they were supposed to already know.
+
+> ❌ A dependency we cannot carry can land with nothing to stop it
+>
+> ✅ No CI check blocks a copyleft dependency from landing
+
+The first title never says *license*, which is what it is about. It asks the
+reader to work out that "cannot carry" means a license incompatible with the
+repository's own.
+
+**One negation, at most.** Each one is a step the reader takes before reaching
+the meaning, and two of them turn a title into arithmetic. Say what is broken,
+or what changes, rather than what is absent.
+
+> ❌ Nothing prevents a zone from having no owner
+>
+> ✅ A zone can lose its owner and keep serving
+
+**The title stands alone.** A reader who never opens the body should still
+know what the post is about. A title that only makes sense once you have read
+the first paragraph is a title that failed.
+
+**Say the outcome, not the mechanism.** `pr-conventions` carries the format:
+the conventional prefix, imperative mood, and the 72-character limit.
+
+## Negations the title gate counts
+
+`pr-op-gate` counts these words in a title and refuses a title carrying more
+than one. Contractions ending in `n't` count too; the gate matches those by
+shape rather than from this table. Edit this table to change what the gate
+counts.
+
+| Word | Counts as |
+|---|---|
+| no / not / nothing / none / never / nobody / neither / nor / without / cannot / unable | one negation |
+
+A count of one is normal and often the clearest thing to write. The cap exists
+to catch the title that makes the reader resolve two before the subject
+arrives.
+
 ## Abbreviations and Latin
 
 Spell out an abbreviation at first use with the short form in brackets, then
