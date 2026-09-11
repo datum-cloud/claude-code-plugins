@@ -2,6 +2,16 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.18.0] - 2026-09-11
+
+### Added
+
+- **Watched-author pull request reviewer** (`lighthouse`, datum-platform). A recurring first-pass reviewer for the operator's own review queue, from [kevwilliams](https://github.com/kevwilliams). It finds open pull requests requesting the operator's review, keeps the ones opened by an author on an explicit allowlist, and posts one verdict each. Comment only is the default posture, and approval is opt in on each run rather than a setting that persists, so nobody inherits an approving bot from a config file they never read. It skips a pull request it has already reviewed once, and it never posts over another human's standing objection.
+
+  The allowlist ships empty and an empty allowlist refuses to run, so installing the plugin reviews nobody until someone adds a login by hand. There is no flag to widen it and no mode that reviews every author, because a bot that comments on anyone's work the moment it installs is a much larger trust step than one that starts with names you chose.
+
+  Each tick routes on build state and diff size before reading a diff. A failing or pending build is a hold that needs no diff, an oversized diff is flagged for a person, a small diff is reviewed in the tick itself, and only a large one is delegated to a subagent. Measured against reviewing every pull request through a subagent, the small-diff path costs about one percent as much, and the schedule runs every ten minutes in working hours and every twenty outside them.
+
 ## [1.17.0] - 2026-09-10
 
 ### Added
