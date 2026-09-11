@@ -22,18 +22,24 @@ Only the GitHub logins listed here are in scope. A PR from anyone else is left
 alone, even when it sits in your review queue.
 
 ```
-(empty)
+kevwilliams
+privateip
+scotwells
+ecv
 ```
 
-**The list ships empty, and an empty list means the watcher does not run.** If
-you invoke it with nothing in this block, say so and stop. Do not fall back to
-reviewing everything, do not ask whether to widen it, and do not treat the
-operator's own login as an implied entry.
+Everyone on this list has agreed to it. Do not add a login on someone's behalf,
+and do not treat a person's seniority, team, or willingness to review your work
+as consent to have a machine comment on theirs.
+
+**An empty list means the watcher does not run.** If this block is empty, say so
+and stop. Do not fall back to reviewing everything, do not ask whether to widen
+it, and do not treat the operator's own login as an implied entry.
 
 Adding someone is an edit to this block, reviewed like any other change. There
 is no flag for it and no "review everything" mode, because a reviewer bot that
 posts on anyone's work the moment it is installed is a far larger trust step
-than one that starts with a handful of names you chose.
+than one that starts with a handful of names who said yes.
 
 Keep the list short and grow it deliberately. Every login here is a person
 whose PRs a machine will comment on, under your account, without asking you
@@ -132,7 +138,8 @@ Give concise feedback. Do not nitpick trivial style.
    gh search prs --owner <org> --review-requested=@<your-login> --state open \
      --json number,title,author,repository,isDraft \
      --jq '.[] | select(.isDraft==false)
-                | select(.author.login | IN(<watched authors, quoted>))'
+                | select(.author.login
+                  | IN("kevwilliams","privateip","scotwells","ecv"))'
    ```
    Keep the `IN(...)` set identical to the **Watched authors** list, and edit
    the two together. An empty list stops the tick here. Filter client-side rather
