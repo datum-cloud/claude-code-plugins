@@ -184,12 +184,20 @@ Give concise feedback. Do not nitpick trivial style.
    full reviews list, not just yours:
    ```
    gh pr view <n> --repo <org>/<repo> --json reviews \
-     --jq '[.reviews[] | select(.author.login != "<your-login>")]
+     --jq '[.reviews[]
+            | select(.author.login != "<your-login>")
+            | select(.state=="APPROVED" or .state=="CHANGES_REQUESTED")]
            | group_by(.author.login) | map(sort_by(.submittedAt) | last)
            | map(select(.state=="CHANGES_REQUESTED"))'
    ```
-   This groups by reviewer and keeps only the latest review each one left.
-   **Unresolved** means the latest state for that human is
+   Drop `COMMENTED` reviews **before** grouping. Only `APPROVED` and
+   `CHANGES_REQUESTED` carry a verdict, and a reviewer who objects and then
+   leaves an ordinary follow-up comment has not withdrawn the objection.
+   Taking the chronological last review of any type reads that follow-up as
+   their current position and clears a standing objection that GitHub still
+   reports as `CHANGES_REQUESTED`.
+
+   **Unresolved** means the latest verdict-bearing state for that human is
    `CHANGES_REQUESTED`. GitHub does not clear that state on a new commit, so
    it stands until the reviewer (or someone else) dismisses it by hand; a
    push from the author alone does not resolve it. Any output from this
