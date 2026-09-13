@@ -212,8 +212,9 @@ Use the unambiguous choice:
 
 ## Phrases the gate refuses
 
-`pr-op-gate` reads this table and refuses a GitHub body that uses any phrase
-in the first column outside code formatting or a quotation. Each row lists
+`pr-op-gate` reads this table and refuses any GitHub post, whether an opening
+post, a comment, a review, or release notes, that uses a phrase in the first
+column outside code formatting or a quotation. Each row lists
 the forms it matches, separated by `/`. Edit this table to change what the
 gate enforces.
 

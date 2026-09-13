@@ -7,8 +7,32 @@ description: Covers GitHub conventions for pull requests, issues, and comments i
 
 Rules for PR, issue, and comment bodies in every `datum-cloud`, `milo-os`, and
 `datum-labs` repository. The `pr-op-gate` hook enforces the countable ones on
-`gh pr|issue create|edit`. A new post has to meet the bar outright. An edit has
-to leave the post no further from the bar than it found it.
+every GitHub post a Bash command makes. A new post has to meet the bar
+outright. An edit has to leave the post no further from the bar than it found
+it.
+
+## What the gate measures
+
+| Posted with | Rules measured |
+|---|---|
+| `gh pr\|issue create\|edit` | The whole bar below, title included |
+| `gh pr\|issue comment`, a `--comment` on close or reopen, `gh pr review`, a `gh pr merge` body or subject, `gh release create\|edit` notes and title | Only the rows marked *everywhere*: em dashes, the banned words, the `clear-writing` phrase table, and hard wrap |
+| `gh api` writes to issue and pull request comments, review comments and their replies, reviews, and releases | The same *everywhere* rows |
+| `gh api graphql` mutations that add or update a comment or review | The same *everywhere* rows |
+
+A comment skips the summary count, the checkbox cap, and the file-path ban,
+because depth, identifiers, and code belong there. Release notes may name
+pull requests. Code fences and quotations are exempt in every mode.
+
+Each segment of a chained command is measured on its own, so `gh pr ready 1 &&
+gh pr comment 1 --body "..."` measures the comment and ignores the rest. When the
+gate cannot read a post's text, because it comes from a shell variable, a
+command substitution other than a `cat` heredoc, a file this same command
+writes by any means other than a `cat` heredoc, or a file that is not there,
+it lets the post through and says the post went unmeasured.
+
+A `gh api` write to an issue or pull request itself stays unmeasured. The
+bookkeeper ticks checkboxes on old opening posts that way.
 
 ## The bar
 
@@ -268,8 +292,8 @@ Pull request datum-cloud/infra#4968 shows the failure. Three reviews and two
 replies, over seventeen hours, settled one fact. The reviewer's checkout
 predated the merge which added the route under dispute.
 The decisive sentence came last in a reply that cited line numbers, a commit
-SHA, a render, and a live object. The gate does not measure comments, so these
-rules rest on the writer.
+SHA, a render, and a live object. The gate measures a comment only for the
+rules that hold everywhere, so the rules below rest on the writer.
 
 The reply is addressed to a person, so the requester sends it. An agent drafts
 it, and posts it only on an explicit ask.
@@ -338,6 +362,11 @@ that already carried two negations passes as long as your title carries no more
 than the one it replaces.
 
 An edit that touches only labels or a milestone is never measured at all.
+
+A comment edited through `gh api` gets the same treatment: the gate reads the
+comment, review, or release back and refuses only what your edit adds.
+`--edit-last` and GraphQL comment updates have no cheap read-back, so they are
+measured outright.
 
 When the gate cannot read the posted title or body, from a failed fetch or a
 target it cannot resolve, it allows the edit and says so, listing what the

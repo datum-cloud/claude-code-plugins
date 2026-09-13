@@ -30,7 +30,7 @@ The launcher hands you a list of actions, each fully specified:
 
 ## How Each Action Is Done
 
-**Tick a checkbox.** This is a mechanical edit to someone else's opening post, so prove it is mechanical before you make it. Read the body with `gh api repos/{owner}/{repo}/issues/<n> --jq .body` into a file, write the edited copy to a second file, `diff` the two, and confirm the only changed characters are the `[ ]` becoming `[x]` on the line the brief names. Then `gh api -X PATCH repos/{owner}/{repo}/issues/<n> -F body=@<file>`. The `pr-op-gate` hook measures a body on `gh pr|issue create|edit`, and it blocks a mechanical tick on an opening post written before the bar existed, which is why this path goes through `gh api` instead. Say in the report that the tick bypassed the gate and that the diff proved it mechanical.
+**Tick a checkbox.** This is a mechanical edit to someone else's opening post, so prove it is mechanical before you make it. Read the body with `gh api repos/{owner}/{repo}/issues/<n> --jq .body` into a file, write the edited copy to a second file, `diff` the two, and confirm the only changed characters are the `[ ]` becoming `[x]` on the line the brief names. Then `gh api -X PATCH repos/{owner}/{repo}/issues/<n> -F body=@<file>`. The `pr-op-gate` hook measures a body on `gh pr|issue create|edit`, and it blocks a mechanical tick on an opening post written before the bar existed, which is why this path goes through `gh api` instead. The gate measures comments posted through `gh api`, but leaves a write to the issue or pull request itself alone for this reason. Say in the report that the tick bypassed the gate and that the diff proved it mechanical.
 
 **Close an issue.** Post the supplied body as a comment first, then `gh issue close <n>`. A close with no record of why is a record nobody can read later.
 
@@ -48,7 +48,7 @@ gh api repos/{owner}/{repo}/issues/<parent>/sub_issues -F sub_issue_id=<database
 
 ## Rules the Bodies Follow
 
-- **Write the file in its own command, post it in the next one.** The `pr-op-gate` hook reads the body file from disk before the command runs, so a heredoc and a `gh` call joined in one command hand the gate the previous contents of that path and post something nobody measured. Two commands, always.
+- **Write the file in its own command, post it in the next one.** The `pr-op-gate` hook reads the body file before the command runs. It follows a `cat > file <<EOF` heredoc in the same command, but a file written any other way in that command goes out unmeasured, with only a note saying so. Two commands, always.
 - **Address nobody.** No reply to a review comment, no `@` mention, no answer to a question a person asked in a thread, nothing posted on another person's pull request or issue. Bodies that describe the work are the job; text that speaks to a person is not yours to send.
 - **`Related to`, never `Fixes` or `Closes`.** The keyword that auto-closes takes the choice away from a person, so link with `Related to` and close by hand afterwards, which is one of the actions above.
 - **Bare URLs for cross references.** A raw `https://` URL expands to a card carrying live open and closed state; a markdown link does not.

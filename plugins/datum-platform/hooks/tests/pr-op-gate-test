@@ -1,0 +1,334 @@
+#!/usr/bin/env bash
+# Runs pr-op-gate against fixed commands and checks the decision it returns.
+#
+# Usage: pr-op-gate-test [gate-path]
+#
+# Every case runs once per awk found on PATH (awk, mawk, gawk), because the
+# gate ships to macOS awk and runs under mawk in CI. `gh` is replaced by a stub
+# that serves the live body a case sets, or fails when a case sets none, so no
+# case touches GitHub. Exits non-zero when any case fails or when no case ran.
+
+set -uo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GATE="${1:-$HERE/../pr-op-gate}"
+GATE="$(cd "$(dirname "$GATE")" && pwd)/$(basename "$GATE")"
+PLUGIN_ROOT="$(cd "$HERE/../.." && pwd)"
+
+SANDBOX=$(mktemp -d)
+trap 'rm -rf "$SANDBOX"' EXIT
+
+mkdir -p "$SANDBOX/bin" "$SANDBOX/stub" "$SANDBOX/work" "$SANDBOX/empty-root/skills/clear-writing"
+: > "$SANDBOX/empty-root/skills/clear-writing/SKILL.md"
+
+cat > "$SANDBOX/bin/gh" <<'STUB'
+#!/usr/bin/env bash
+dir="${GH_STUB_DIR:?}"
+case "$1" in
+  api) [ -f "$dir/api" ] && { cat "$dir/api"; exit 0; } ;;
+  pr|issue) [ "${2:-}" = "view" ] && [ -f "$dir/view.json" ] && { cat "$dir/view.json"; exit 0; } ;;
+esac
+exit 1
+STUB
+chmod +x "$SANDBOX/bin/gh"
+
+PASS=0
+FAIL=0
+AWK_NAME=""
+SHIM=""
+ROOT="$PLUGIN_ROOT"
+
+reset_case() {
+  rm -rf "$SANDBOX/stub" "$SANDBOX/work"
+  mkdir -p "$SANDBOX/stub" "$SANDBOX/work"
+  ROOT="$PLUGIN_ROOT"
+}
+
+stub_api() {
+  printf '%s' "$1" > "$SANDBOX/stub/api"
+}
+
+stub_view() {
+  jq -n --arg b "$1" --arg t "${2:-Title}" '{body: $b, title: $t}' > "$SANDBOX/stub/view.json"
+}
+
+work_file() {
+  printf '%s' "$2" > "$SANDBOX/work/$1"
+}
+
+check() {
+  local name="$1" want="$2" needle="$3" command="$4" out decision text
+  out=$(
+    cd "$SANDBOX/work" &&
+      jq -n --arg c "$command" '{tool_input: {command: $c}}' |
+      PATH="$SANDBOX/bin:$SHIM:$PATH" GH_STUB_DIR="$SANDBOX/stub" CLAUDE_PLUGIN_ROOT="$ROOT" bash "$GATE"
+  )
+  if [ -z "$out" ]; then
+    decision=silent
+    text=""
+  else
+    decision=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // (if .hookSpecificOutput.additionalContext then "allow" else "unknown" end)' 2>/dev/null)
+    text=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason // .hookSpecificOutput.additionalContext // ""' 2>/dev/null)
+  fi
+  if [ "$decision" = "$want" ] && { [ -z "$needle" ] || [[ "$text" == *"$needle"* ]]; }; then
+    PASS=$((PASS + 1))
+    printf 'ok      [%s] %s\n' "$AWK_NAME" "$name"
+  else
+    FAIL=$((FAIL + 1))
+    printf 'not ok  [%s] %s\n        wanted %s%s, got %s\n' "$AWK_NAME" "$name" "$want" "${needle:+ containing \"$needle\"}" "$decision"
+    printf '%s\n' "$text" | head -5 | sed 's/^/        | /'
+  fi
+}
+
+WRAPPED_BODY='This paragraph is wrapped at a fixed column the way a commit
+message would be, which GitHub renders as ragged lines in the
+comment because it reflows Markdown on its own when it shows it.'
+
+FENCED_BODY='The failing output:
+
+```
+error — connection refused
+```
+
+Retrying fixed it.'
+
+SIX_SENTENCES='The route lives in `plugins/datum-platform/hooks/pr-op-gate`. It reads `skills/clear-writing/SKILL.md` at run time. I ran `task test` at a0e658d. The render matched. The live object matched too. Both agree with the review.'
+
+cases() {
+  reset_case
+  check "comment: em dash in gh issue comment --body is refused" deny "em dash" \
+    'gh issue comment 5 --body "Fixed — thanks."'
+
+  reset_case
+  check "comment: clean gh issue comment -b passes with guidance" allow "Writing rules for this body" \
+    "gh issue comment 5 -b 'Fixed, thanks.'"
+
+  reset_case
+  work_file notes.md "We rebuilt the cache in order to ship faster."
+  check "comment: banned phrase in gh release create --notes-file is refused" deny "in order to" \
+    'gh release create v1.2.0 --title v1.2.0 --notes-file notes.md'
+
+  reset_case
+  work_file notes.md "$SIX_SENTENCES See #12 and #14."
+  check "comment: release notes naming PRs and paths pass" allow "" \
+    'gh release create v1.2.0 -F notes.md'
+
+  reset_case
+  stub_api "Old body."
+  check "comment: hard wrap in gh api PATCH issues/comments is refused" deny "Edit adds hard-wrapped prose" \
+    "gh api -X PATCH repos/o/r/issues/comments/1 -f body='$WRAPPED_BODY'"
+
+  reset_case
+  stub_api "$WRAPPED_BODY"
+  check "comment: api PATCH that keeps an existing hard wrap passes" allow "" \
+    "gh api -X PATCH repos/o/r/issues/comments/1 -f body='$WRAPPED_BODY'"
+
+  reset_case
+  check "comment: api PATCH with no readable live body is allowed with a warning" allow "could not be read" \
+    "gh api --method PATCH repos/o/r/issues/comments/1 -f body='$WRAPPED_BODY'"
+
+  reset_case
+  check "chain: clean multi-segment chain passes" allow "Writing rules for this body" \
+    "gh pr ready 1 && gh pr comment 1 --body \"Clean note.\" ; gh issue comment 2 -b 'Also clean.'"
+
+  reset_case
+  check "chain: a dirty second post is refused and named" deny "Post 2 of 2" \
+    "gh pr comment 1 --body 'Clean note.' && gh issue comment 2 -b 'Not clean — at all.'"
+
+  reset_case
+  check "chain: an em dash in a non-post segment never refuses" allow "" \
+    'echo "a — b" && git commit -m "x — y" && gh pr comment 1 --body "Clean."'
+
+  reset_case
+  check "comment: code-fenced em dash passes" allow "" \
+    "gh pr comment 1 --body \"\$(cat <<'EOF'
+$FENCED_BODY
+EOF
+)\""
+
+  reset_case
+  check "comment: an inline API path is measured on every awk" allow "" \
+    "gh pr comment 1 --body 'Switch the base path to \`/v1beta2\` and rename \`filter\` to \`q\`.'"
+
+  reset_case
+  check "comment: file paths and six sentences pass" allow "" \
+    "gh pr comment 1 --body '$SIX_SENTENCES'"
+
+  reset_case
+  check "comment: em dash inside a quoted heredoc substitution is refused" deny "em dash" \
+    "gh pr comment 1 --body \"\$(cat <<'EOF'
+Line one — here.
+EOF
+)\""
+
+  reset_case
+  work_file body.md "An older, clean draft."
+  check "comment: body file written by the same command is measured, not the stale copy" deny "em dash" \
+    "cat > body.md <<'EOF'
+New draft — with a dash.
+EOF
+gh issue comment 1 --body-file body.md"
+
+  reset_case
+  work_file body.md "An older, clean draft."
+  check "comment: body file written by printf in the same command is reported unmeasured" allow "copy on disk is not what goes out" \
+    "printf '%s' \"\$DRAFT\" > body.md && gh issue comment 1 --body-file ./body.md"
+
+  reset_case
+  check "comment: body built from a variable is reported unmeasured" allow "shell expansion" \
+    'gh pr comment 1 --body "$BODY"'
+
+  reset_case
+  check "comment: missing body file is reported unmeasured" allow "not there to read yet" \
+    'gh pr comment 1 --body-file missing.md'
+
+  reset_case
+  check "comment: body from a heredoc on stdin is measured" deny "em dash" \
+    "gh issue comment 1 --body-file - <<'EOF'
+Stdin body — dashed.
+EOF"
+
+  reset_case
+  check "review: em dash in gh pr review -b is refused" deny "em dash" \
+    'gh pr review 3 --comment -b "Looks good — ship."'
+
+  reset_case
+  check "review: approve with no body is not measured" silent "" \
+    'gh pr review 3 --approve'
+
+  reset_case
+  check "merge: em dash in gh pr merge --subject is refused" deny "em dash" \
+    'gh pr merge 3 --squash --subject "Ship it — now"'
+
+  reset_case
+  check "close: em dash in gh issue close -c is refused" deny "em dash" \
+    'gh issue close 3 -c "Done — closing."'
+
+  reset_case
+  check "close: close with no comment is not measured" silent "" \
+    'gh issue close 3 --reason completed'
+
+  reset_case
+  check "comment: --edit-last is measured outright" deny "em dash" \
+    'gh issue comment 1 --edit-last --body "a — b"'
+
+  reset_case
+  work_file c.md "We utilize the cache."
+  check "api: -F body=@file on POST issues/n/comments is refused" deny "utilize" \
+    'gh api repos/{owner}/{repo}/issues/7/comments -F body=@c.md'
+
+  reset_case
+  work_file review.json '{"event":"COMMENT","body":"Reviewed — fine."}'
+  check "api: --input review with an em dash is refused" deny "em dash" \
+    'gh api repos/o/r/pulls/9/reviews --input review.json'
+
+  reset_case
+  check "graphql: addComment with a body variable is refused" deny "em dash" \
+    "gh api graphql -f query='mutation(\$id:ID!,\$body:String!){addComment(input:{subjectId:\$id,body:\$body}){clientMutationId}}' -f id=I_1 -f body='Noted — thanks.'"
+
+  reset_case
+  check "graphql: updateIssueComment with an inline body is refused" deny "em dash" \
+    "gh api graphql -f query='mutation{updateIssueComment(input:{id:\"IC_1\",body:\"Edited — again.\"}){clientMutationId}}'"
+
+  reset_case
+  check "graphql: clean addComment passes" allow "" \
+    "gh api graphql -f query='mutation(\$id:ID!,\$body:String!){addComment(input:{subjectId:\$id,body:\$body}){clientMutationId}}' -f id=I_1 -f body='Noted, thanks.'"
+
+  reset_case
+  check "graphql: minimizeComment is not a post" silent "" \
+    "gh api graphql -f query='mutation(\$id:ID!){minimizeComment(input:{subjectId:\$id,classifier:OUTDATED}){minimizedComment{isMinimized}}}' -f id=IC_1"
+
+  reset_case
+  check "api: a GET is not a post" silent "" \
+    'gh api repos/o/r/issues/1/comments --jq ".[].body"'
+
+  reset_case
+  check "api: PATCH to an issue itself stays out of scope" silent "" \
+    "gh api -X PATCH repos/o/r/issues/5 -f body='Anything — here.'"
+
+  reset_case
+  check "parse: a post inside bash -c is reported unmeasured" allow "does not look inside" \
+    "bash -c 'gh pr comment 1 --body \"x — y\"'"
+
+  reset_case
+  check "parse: an unterminated quote is reported unmeasured" allow "could not be parsed" \
+    'gh pr comment 1 --body "unterminated'
+
+  reset_case
+  ROOT="$SANDBOX/empty-root"
+  check "tables: an empty phrase table refuses a comment" deny "could not load the phrase table" \
+    'gh pr comment 1 --body "Clean."'
+
+  reset_case
+  check "op: create with a five-sentence summary is refused" deny "Summary runs 5 sentences" \
+    "gh pr create --title 'Add a cache for the resolver' --body 'One. Two. Three. Four. Five.
+
+## Test plan
+
+- [ ] It works'"
+
+  reset_case
+  check "op: clean create passes" allow "Depth belongs in a comment" \
+    "gh pr create --title 'Add a cache for the resolver' --body 'Lookups were slow.
+
+The resolver now caches answers for a minute.
+
+## Test plan
+
+- [ ] A repeat lookup returns from cache'"
+
+  reset_case
+  check "op: create naming a file path is refused" deny "file paths" \
+    "gh issue create --title 'Cache the resolver' --body 'Edit \`plugins/x/hooks/gate.sh\` to cache.'"
+
+  reset_case
+  check "op: title with two negations is refused" deny "negations" \
+    "gh issue create --title 'Nothing stops a post that never gets measured' --body 'Posts go out.'"
+
+  reset_case
+  check "op: the six sentences a comment may carry are refused as a create summary" deny "Summary runs 6 sentences" \
+    "gh pr create --title 'Cache lookups' --body '$SIX_SENTENCES
+
+## Test plan
+
+- [ ] Works'"
+
+  reset_case
+  stub_view "Old body — with a dash."
+  check "op: edit that keeps an existing em dash passes" allow "" \
+    "gh pr edit 4 --body 'New body — with a dash.'"
+
+  reset_case
+  stub_view "Old body."
+  check "op: edit that adds an em dash is refused" deny "Edit takes em dashes from 0 to 1" \
+    "gh pr edit 4 --body 'New body — with a dash.'"
+
+  reset_case
+  check "op: create body from a heredoc substitution is measured" deny "em dash" \
+    "gh pr create --title 'Cache lookups' --body \"\$(cat <<'EOF'
+Lookups were slow — very.
+EOF
+)\""
+
+  reset_case
+  check "chain: create plus comment carries both kinds of guidance" allow "Depth, identifiers, and code are fine in a comment" \
+    "gh pr create --title 'Cache lookups' --body 'Lookups were slow.' && gh pr comment 1 --body 'Evidence follows.'"
+}
+
+AWKS=""
+for candidate in awk mawk gawk; do
+  bin=$(command -v "$candidate" 2>/dev/null) || continue
+  mkdir -p "$SANDBOX/shim-$candidate"
+  ln -sf "$bin" "$SANDBOX/shim-$candidate/awk"
+  AWKS="$AWKS $candidate"
+done
+
+for candidate in $AWKS; do
+  AWK_NAME="$candidate"
+  SHIM="$SANDBOX/shim-$candidate"
+  cases
+done
+
+printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
+[ "$PASS" -gt 0 ] || { echo "no case ran" >&2; exit 1; }
+[ "$FAIL" -eq 0 ]
