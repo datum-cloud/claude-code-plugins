@@ -2,6 +2,20 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.20.0] - 2026-09-14
+
+### Added
+
+- **Every GitHub post is measured** (`pr-op-gate`, `pr-conventions`, datum-platform). Until now a comment, a review, a close comment, a merge message, or release notes went out unchecked, and so did anything posted through `gh api`. The gate now measures all of them against the rules the skill says hold everywhere: no em dashes, none of the banned words, none of the phrases in the `clear-writing` table, and no hard wrap. The opening-post counts stay off comments, which may carry depth, identifiers, and code. Opening posts are measured exactly as before.
+
+### Changed
+
+- **Chained commands measure each post.** `gh pr ready 1 && gh pr comment 1 --body "..."` measures the comment and never refuses on the part that posts nothing. A body written by a `cat` heredoc earlier in the same command is measured from the heredoc rather than from the stale file on disk, and a body the gate cannot read now says it went unmeasured instead of passing silently.
+
+### Fixed
+
+- **The gate no longer crashes under mawk** on a body carrying an inline API path such as `/v1beta2`, which refused the post as unmeasurable.
+
 ## [1.19.0] - 2026-09-14
 
 ### Changed
@@ -16,6 +30,7 @@ Notable changes to the Datum Cloud Claude Code plugins.
 - **Acceptance criteria heading** (`pr-conventions`, datum-platform). Issue and epic bodies head their success section `## Acceptance criteria`, and the skill now shows the issue body shape.
 - **The adversary checks every name** (`pr-adversary`, datum-platform). Each site, cluster, resource, and alert a body names must exist in live state or the render. A drafted example once named two sites the alert never touched, and nothing caught it.
 - **Safer parenting and closing** (`bookkeeper`, datum-platform). The bookkeeper checks for an existing parent with GraphQL before adding a sub-issue, because the REST issue object has no parent field to read. It closes duplicates with the linking flag and runs one write per command.
+
 
 ## [1.17.0] - 2026-09-10
 

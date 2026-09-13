@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pr-op-gate",
-            "statusMessage": "Checking the body against the PR/issue bar"
+            "statusMessage": "Checking GitHub posts against the writing bar"
           },
           {
             "type": "command",
