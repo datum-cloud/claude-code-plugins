@@ -1,17 +1,55 @@
 #!/usr/bin/env bash
-# PreToolUse gate for `gh pr|issue create|edit`.
+# PreToolUse gate for every GitHub post a Bash command makes.
 #
-# Measures the title and the body being posted against the countable rules in
-# the pr-conventions skill. A create is measured against an empty baseline, so
-# it has to meet the bar outright. An edit is measured against the title and
-# body already posted and is refused only on dimensions where it scores worse,
-# so a state update to a post written before the convention, or by someone
-# else, passes. Style guidance that cannot be counted rides along as advisory
-# context.
+# The command is split into its segments, honouring quotes, heredocs, and
+# command substitution, so a chain such as `gh pr ready 1 && gh pr comment 1
+# --body "..."` measures each post on its own. A segment that posts nothing
+# is never measured and never refused.
+#
+# Two modes share one measurement.
+#
+# OP mode covers `gh pr|issue create|edit`. The title and the body are
+# measured against the whole countable bar in the pr-conventions skill. A
+# create is measured against an empty baseline, so it has to meet the bar
+# outright. An edit is measured against the title and body already posted and
+# is refused only on dimensions where it scores worse, so a state update to a
+# post written before the convention, or by someone else, passes.
 #
 # The title carries a second count: how many negations it makes the reader
 # resolve. One is readable. Two turns the title into a puzzle whose answer is
 # the thing the title should have named.
+#
+# Comment mode covers the rest of what reaches GitHub as prose:
+#
+#   - `gh pr|issue comment` with --body, -b, --body-file, or -F, including
+#     --edit-last
+#   - `gh pr|issue close|reopen` with --comment or -c
+#   - `gh pr review` with a body, and `gh pr merge` with a body or --subject
+#   - `gh release create|edit` with --notes, --notes-file, or --title
+#   - `gh api` POST to issues/<n>/comments, pulls/<n>/comments and their
+#     replies, pulls/<n>/reviews, and releases, PATCH to issues/comments/<id>,
+#     pulls/comments/<id>, and releases/<id>, and PUT to pulls/<n>/reviews/<id>,
+#     with the text in -f, -F (including @file), or --input
+#   - `gh api graphql` mutations that add or update a comment or a review,
+#     with the body inline in the query or passed as a variable
+#
+# It applies only the rules the skill says hold everywhere on GitHub: no em
+# dashes, the banned words, the clear-writing phrase table, and no hard-wrapped
+# prose. The summary sentence count, the checkbox cap, the file-path ban, the
+# Closes keyword, and the emoji heading are opening-post rules, and a comment
+# may carry depth, identifiers, and code. A `gh api` edit whose target can be
+# read back is judged no-worse like an OP edit. --edit-last and a GraphQL
+# update have no cheap read-back, so they are measured outright.
+#
+# Code fences and quotations stay exempt in both modes, and inline code is
+# exempt from the phrase table. Writing guidance rides along as context on
+# every post.
+#
+# A post whose text the gate cannot read, because it comes from a shell
+# expansion, a file this same command writes, a missing file, or a command the
+# gate does not parse, is allowed through with a note saying it went
+# unmeasured. It never reads as a pass. `gh api` PATCH or POST to an issue or a
+# pull request itself is left to the agents that tick checkboxes through it.
 #
 # Both word tables come from the clear-writing skill, so the doc and the gate
 # cannot drift apart. An empty table is a refusal, never a pass.
@@ -21,9 +59,9 @@ set -uo pipefail
 INPUT=$(cat)
 COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty')
 
-[[ "$COMMAND" =~ gh[[:space:]]+(pr|issue)[[:space:]]+(create|edit) ]] || exit 0
-KIND="${BASH_REMATCH[1]}"
-VERB="${BASH_REMATCH[2]}"
+POST_PATTERN='gh[[:space:]]+((pr|issue)[[:space:]]+(create|edit|comment|close|reopen|review|merge)|release[[:space:]]+(create|edit)|api([[:space:]]|$))'
+
+[[ "$COMMAND" =~ $POST_PATTERN ]] || exit 0
 
 DIMENSIONS=15
 TITLE_DIMENSIONS=3
@@ -35,6 +73,8 @@ PHRASE_SOURCE="$PLUGIN_ROOT/skills/clear-writing/SKILL.md"
 ADVICE='Writing rules for this body (datum-platform:pr-conventions and clear-writing): answer what, who, when, where, how, why, and how much; cut every word carrying no fact; short word over long; verbs over -tion nouns; active over passive; numbers over adjectives; one idea per paragraph; short paragraphs whose length varies, rather than a dense block or a run of the same length; no "simply"/"just"/"easily"; no em dashes, no "load-bearing", no "gotchas", no "structural", no "why it matters" label, no "kept it honest"; none of the wordy phrases, Latin tags, or jargon in the clear-writing table; a colon only where a period will not do, and a semicolon only where a comma or a period will not; an ordered list rather than arrows for a sequence; say it once, so anything already in the linked issue gets linked, not restated. Depth belongs in a comment or the commit message.'
 
 TITLE_ADVICE='Writing rules for the title: name the subject the post is about, in the words a reader outside the team would use for it, rather than a phrase that stands in for it; make the title readable on its own, without the body; state what is broken or what changes, not what is absent; and keep it under 72 characters.'
+
+COMMENT_ADVICE='Writing rules for this body (datum-platform:pr-conventions and clear-writing): cut every word carrying no fact; short word over long; verbs over -tion nouns; active over passive; numbers over adjectives; one idea per paragraph; no "simply"/"just"/"easily"; no em dashes, no "load-bearing", no "gotchas", no "structural", no "why it matters" label, no "kept it honest", no "that is a valid answer"; none of the wordy phrases, Latin tags, or jargon in the clear-writing table; no hard-wrapped prose; a colon only where a period will not do, and a semicolon only where a comma or a period will not; state a fact once, with one proof, and name the sentence a reader missed rather than repeating an earlier comment. Depth, identifiers, and code are fine in a comment.'
 
 emit() {
   jq -n --arg ctx "$1" '{
@@ -53,31 +93,6 @@ deny() {
       permissionDecisionReason: $reason
     }
   }'
-}
-
-unquote() {
-  local v="$1"
-  v="${v%\"}"; v="${v#\"}"
-  v="${v%\'}"; v="${v#\'}"
-  printf '%s' "$v"
-}
-
-extract_body() {
-  local path
-  path=$(unquote "$(printf '%s' "$COMMAND" | sed -n -E 's/.*(--body-file|-F)[= ]+([^ ]+).*/\2/p' | head -1)")
-  if [ -n "$path" ] && [ "$path" != "-" ] && [ -r "$path" ]; then
-    cat "$path"
-    return
-  fi
-  printf '%s' "$COMMAND" | sed -n -E "s/.*(--body|-b)[= ]+'([^']*)'.*/\2/p" | head -1
-}
-
-extract_title() {
-  local raw
-  raw=$(printf '%s' "$COMMAND" | grep -oE "(--title|(^|[[:space:]])-t)[= ]+('[^']*'|\"[^\"]*\"|[^[:space:]]+)" | head -1)
-  [ -n "$raw" ] || return 0
-  raw=$(printf '%s' "$raw" | sed -E "s/^[[:space:]]*(--title|-t)[= ]+//")
-  unquote "$raw"
 }
 
 load_table() {
@@ -328,7 +343,7 @@ END {
 }
 
 compare() {
-  awk -F'\t' -v mode="$1" -v want="$DIMENSIONS" '
+  awk -F'\t' -v mode="$1" -v rules="$4" -v want="$DIMENSIONS" '
 function over(v, cap) { return (v > cap) ? v - cap : 0 }
 function worse(d, cap) { return over(cur[d], cap) > over(base[d], cap) }
 
@@ -341,35 +356,37 @@ END {
     exit 3
   }
 
-  if (worse("sentences", 4)) {
-    if (mode == "edit")
-      printf "- Edit takes the summary from %d to %d sentences, against a cap of 4. Bring it back to the count you found.\n", base["sentences"], cur["sentences"]
-    else
-      printf "- Summary runs %d sentences against a cap of 4. Cut it to the problem, then what changes for users or operators.\n", cur["sentences"]
-  }
-  if (worse("boxes", 4)) {
-    if (mode == "edit")
-      printf "- Edit takes the test plan from %d to %d checkboxes, against a cap of 4.\n", base["boxes"], cur["boxes"]
-    else
-      printf "- Test plan has %d checkboxes against a cap of 4. Collapse build/lint/test rows into one and keep behavioral outcomes only.\n", cur["boxes"]
-  }
-  if (worse("code", 0)) {
-    if (mode == "edit")
-      print "- Edit adds file paths, identifiers, or tool invocations the posted body does not carry. Those belong in a comment or the commit message."
-    else
-      print "- Body names file paths, identifiers, or tool invocations. Those belong in a comment or the commit message, not the opening post."
-  }
-  if (worse("closes", 0)) {
-    if (mode == "edit")
-      print "- Edit adds a Closes keyword. Use Fixes or Resolves when the merge should close the issue, Related to when it should not."
-    else
-      print "- Body uses a Closes keyword. Use Fixes or Resolves when the merge should close the issue, Related to when it should not."
-  }
-  if (worse("emoji", 0)) {
-    if (mode == "edit")
-      print "- Edit adds an emoji heading. Use GitHub callout syntax for emphasis instead."
-    else
-      print "- Body uses an emoji heading. Use GitHub callout syntax for emphasis instead."
+  if (rules == "op") {
+    if (worse("sentences", 4)) {
+      if (mode == "edit")
+        printf "- Edit takes the summary from %d to %d sentences, against a cap of 4. Bring it back to the count you found.\n", base["sentences"], cur["sentences"]
+      else
+        printf "- Summary runs %d sentences against a cap of 4. Cut it to the problem, then what changes for users or operators.\n", cur["sentences"]
+    }
+    if (worse("boxes", 4)) {
+      if (mode == "edit")
+        printf "- Edit takes the test plan from %d to %d checkboxes, against a cap of 4.\n", base["boxes"], cur["boxes"]
+      else
+        printf "- Test plan has %d checkboxes against a cap of 4. Collapse build/lint/test rows into one and keep behavioral outcomes only.\n", cur["boxes"]
+    }
+    if (worse("code", 0)) {
+      if (mode == "edit")
+        print "- Edit adds file paths, identifiers, or tool invocations the posted body does not carry. Those belong in a comment or the commit message."
+      else
+        print "- Body names file paths, identifiers, or tool invocations. Those belong in a comment or the commit message, not the opening post."
+    }
+    if (worse("closes", 0)) {
+      if (mode == "edit")
+        print "- Edit adds a Closes keyword. Use Fixes or Resolves when the merge should close the issue, Related to when it should not."
+      else
+        print "- Body uses a Closes keyword. Use Fixes or Resolves when the merge should close the issue, Related to when it should not."
+    }
+    if (worse("emoji", 0)) {
+      if (mode == "edit")
+        print "- Edit adds an emoji heading. Use GitHub callout syntax for emphasis instead."
+      else
+        print "- Body uses an emoji heading. Use GitHub callout syntax for emphasis instead."
+    }
   }
   if (worse("hardwrap", 0)) {
     if (mode == "edit")
@@ -435,34 +452,6 @@ END {
 ' "$2" "$3"
 }
 
-scrubbed_command() {
-  printf '%s' "$COMMAND" | sed -E "s/'[^']*'/''/g; s/\"[^\"]*\"/\"\"/g"
-}
-
-target_selector() {
-  scrubbed_command | awk -v kind="$KIND" -v verb="$VERB" '
-{
-  n = split($0, t, /[ \t]+/)
-  for (i = 1; i <= n; i++)
-    if (t[i] == "gh" && t[i + 1] == kind && t[i + 2] == verb) { start = i + 3; break }
-  if (!start) exit 0
-  for (i = start; i <= n; i++) {
-    tok = t[i]
-    if (tok == "") continue
-    if (tok ~ /^(&&|\|\||;|\||>|>>|2>)$/) exit 0
-    if (tok ~ /^-/) {
-      if (tok ~ /=/) continue
-      if (tok ~ /^(--remove-milestone|--web|--draft|--help|-h)$/) continue
-      i++
-      continue
-    }
-    print tok
-    exit 0
-  }
-}
-'
-}
-
 run_bounded() {
   if command -v timeout >/dev/null 2>&1; then
     timeout 10 "$@"
@@ -473,16 +462,869 @@ run_bounded() {
   fi
 }
 
-fetch_live_field() {
-  local field="$1" selector repo workdir out
-  selector=$(target_selector)
-  repo=$(unquote "$(printf '%s' "$COMMAND" | sed -n -E 's/.*(--repo|-R)[= ]+([^ ]+).*/\2/p' | head -1)")
-  workdir=$(unquote "$(printf '%s' "$COMMAND" | sed -n -E 's/^[[:space:]]*cd[[:space:]]+([^ ]+)[[:space:]]*&&.*/\1/p' | head -1)")
+tokenize() {
+  LC_ALL=C awk -v dir="$WORK" -v sq="'" '
+function fail(msg) {
+  if (!failed) { failed = 1; failmsg = msg }
+  return n + 1
+}
 
-  [ "$KIND" = "issue" ] && [ -z "$selector" ] && return 1
+function store(v,   fn) {
+  ntok++
+  fn = dir "/t" ntok
+  printf "%s", v > fn
+  close(fn)
+  return fn
+}
+
+function headof(v) {
+  gsub(/[\t\n\r]/, " ", v)
+  return substr(v, 1, 200)
+}
+
+function record(kind, segno, flag, v) {
+  printf "%s\t%d\t%s\t%s\t%s\n", kind, segno, flag, store(v), headof(v)
+}
+
+function flushword(   kind) {
+  if (!inword) return
+  kind = "T"
+  if (pend == "out") kind = "R"
+  else if (pend == "in") kind = "I"
+  else if (pend == "here") kind = "H"
+  record(kind, seg, (dyn ? "D" : "L"), cur)
+  cur = ""; inword = 0; dyn = 0; pend = ""
+}
+
+function dquote(k,   ch, nx, j) {
+  inword = 1
+  while (k <= n) {
+    ch = substr(s, k, 1)
+    if (ch == "\"") return k + 1
+    if (ch == "\\") {
+      nx = substr(s, k + 1, 1)
+      if (nx == "\n") { k += 2; continue }
+      if (nx == "$" || nx == "`" || nx == "\"" || nx == "\\") { cur = cur nx; k += 2; continue }
+      cur = cur ch; k++; continue
+    }
+    if (ch == "$" && substr(s, k + 1, 1) == "(") { k = cmdsub(k); continue }
+    if (ch == "$" && substr(s, k + 1, 1) ~ /[A-Za-z0-9_{@*#?$!-]/) dyn = 1
+    if (ch == "`") {
+      j = index(substr(s, k + 1), "`")
+      if (!j) return fail("an unterminated backtick")
+      dyn = 1; cur = cur substr(s, k, j + 1); k += j + 1; continue
+    }
+    cur = cur ch; k++
+  }
+  return fail("an unterminated double quote")
+}
+
+function cmdsub(k,   p, ch, e, tag, quoted, strip, line, cmp, body, lines, depth, q) {
+  inword = 1
+  if (substr(s, k, 1) == "$" && match(substr(s, k), /^\$\([ \t]*cat[ \t]+<<-?[ \t]*/)) {
+    p = k + RLENGTH
+    strip = (substr(s, k, RLENGTH) ~ /<<-/)
+    ch = substr(s, p, 1)
+    tag = ""
+    if (ch == sq || ch == "\"") {
+      e = index(substr(s, p + 1), ch)
+      if (e) { tag = substr(s, p + 1, e - 1); quoted = 1; p = p + e + 1 }
+    } else if (match(substr(s, p), /^[A-Za-z0-9_]+/)) {
+      tag = substr(s, p, RLENGTH); quoted = 0; p += RLENGTH
+    }
+    if (tag != "" && match(substr(s, p), /^[ \t]*\n/)) {
+      p += RLENGTH
+      body = ""; lines = 0
+      while (p <= n) {
+        e = index(substr(s, p), "\n")
+        line = e ? substr(s, p, e - 1) : substr(s, p)
+        cmp = line
+        if (strip) sub(/^\t+/, "", cmp)
+        if (cmp == tag) {
+          p += length(line)
+          if (match(substr(s, p), /^[ \t\n]*\)/)) {
+            if (!quoted && body ~ /[$`]/) dyn = 1
+            cur = cur body
+            return p + RLENGTH
+          }
+          break
+        }
+        body = body (lines++ ? "\n" : "") (strip ? cmp : line)
+        if (!e) break
+        p += e
+      }
+    }
+  }
+  depth = 1
+  p = k + 2
+  while (p <= n) {
+    ch = substr(s, p, 1)
+    if (ch == "\\") { p += 2; continue }
+    if (ch == sq) {
+      e = index(substr(s, p + 1), sq)
+      if (!e) return fail("an unterminated quote inside a command substitution")
+      p += e + 1; continue
+    }
+    if (ch == "\"") {
+      q = p + 1
+      while (q <= n && substr(s, q, 1) != "\"") { if (substr(s, q, 1) == "\\") q++; q++ }
+      if (q > n) return fail("an unterminated quote inside a command substitution")
+      p = q + 1; continue
+    }
+    if (ch == "(") depth++
+    else if (ch == ")") {
+      depth--
+      if (depth == 0) { dyn = 1; cur = cur substr(s, k, p - k + 1); return p + 1 }
+    }
+    p++
+  }
+  return fail("an unterminated command substitution")
+}
+
+function heredoc_start(p,   ch, e, tag, quoted, strip) {
+  strip = 0
+  if (substr(s, p, 1) == "-") { strip = 1; p++ }
+  while (substr(s, p, 1) == " " || substr(s, p, 1) == "\t") p++
+  ch = substr(s, p, 1)
+  if (ch == sq || ch == "\"") {
+    e = index(substr(s, p + 1), ch)
+    if (!e) return fail("a heredoc delimiter with an unterminated quote")
+    tag = substr(s, p + 1, e - 1); quoted = 1; p += e + 1
+  } else if (match(substr(s, p), /^\\?[A-Za-z0-9_]+/)) {
+    tag = substr(s, p, RLENGTH); p += RLENGTH
+    quoted = (substr(tag, 1, 1) == "\\")
+    if (quoted) tag = substr(tag, 2)
+  } else {
+    return fail("a heredoc without a delimiter")
+  }
+  nh++
+  htag[nh] = tag; hquoted[nh] = quoted; hstrip[nh] = strip; hseg[nh] = seg
+  return p
+}
+
+function heredoc_bodies(   h, p, e, line, cmp, body, found) {
+  p = i + 1
+  for (h = 1; h <= nh; h++) {
+    body = ""; found = 0
+    while (p <= n) {
+      e = index(substr(s, p), "\n")
+      line = e ? substr(s, p, e - 1) : substr(s, p)
+      p = e ? p + e : n + 1
+      cmp = line
+      if (hstrip[h]) sub(/^\t+/, "", cmp)
+      if (cmp == htag[h]) { found = 1; break }
+      body = body (hstrip[h] ? cmp : line) "\n"
+    }
+    if (!found) { nh = 0; i = fail("an unterminated heredoc"); return }
+    record("H", hseg[h], (!hquoted[h] && body ~ /[$`]/) ? "D" : "L", body)
+  }
+  nh = 0
+  i = p - 1
+}
+
+{ s = (NR == 1) ? $0 : s "\n" $0 }
+
+END {
+  n = length(s)
+  seg = 1
+  i = 1
+  while (i <= n) {
+    c = substr(s, i, 1)
+    if (c == "\\") {
+      if (substr(s, i + 1, 1) == "\n") { i += 2; continue }
+      cur = cur substr(s, i + 1, 1); inword = 1; i += 2; continue
+    }
+    if (c == sq) {
+      j = index(substr(s, i + 1), sq)
+      if (!j) { i = fail("an unterminated single quote"); continue }
+      cur = cur substr(s, i + 1, j - 1); inword = 1; i += j + 1; continue
+    }
+    if (c == "\"") { i = dquote(i + 1); continue }
+    if (c == "$") {
+      nx = substr(s, i + 1, 1)
+      if (nx == "(") { i = cmdsub(i); continue }
+      if (nx == sq) {
+        j = i + 2
+        while (j <= n && substr(s, j, 1) != sq) { if (substr(s, j, 1) == "\\") j++; j++ }
+        if (j > n) { i = fail("an unterminated $-quoted string"); continue }
+        dyn = 1; inword = 1; cur = cur substr(s, i, j - i + 1); i = j + 1; continue
+      }
+      if (nx ~ /[A-Za-z0-9_{@*#?$!-]/) dyn = 1
+      cur = cur c; inword = 1; i++; continue
+    }
+    if (c == "`") {
+      j = index(substr(s, i + 1), "`")
+      if (!j) { i = fail("an unterminated backtick"); continue }
+      dyn = 1; inword = 1; cur = cur substr(s, i, j + 1); i += j + 1; continue
+    }
+    if (c == " " || c == "\t") { flushword(); i++; continue }
+    if (c == "\n") {
+      flushword()
+      if (nh) heredoc_bodies()
+      seg++; i++; continue
+    }
+    if (c == "#" && !inword) {
+      while (i <= n && substr(s, i, 1) != "\n") i++
+      continue
+    }
+    if (c == "(" || c == ")") { flushword(); seg++; i++; continue }
+    if (c == ";" || c == "|" || c == "&") {
+      nx = substr(s, i + 1, 1)
+      if (c == "&" && nx == ">") {
+        flushword(); i += 2
+        if (substr(s, i, 1) == ">") i++
+        pend = "out"; continue
+      }
+      flushword(); seg++; i++
+      if ((c == "&" && nx == "&") || (c == "|" && (nx == "|" || nx == "&")) || (c == ";" && nx == ";")) i++
+      continue
+    }
+    if (c == ">") {
+      if (inword && !dyn && cur ~ /^[0-9]+$/) { cur = ""; inword = 0 }
+      flushword(); i++
+      nx = substr(s, i, 1)
+      if (nx == "&") { i++; while (substr(s, i, 1) ~ /[0-9-]/) i++; continue }
+      if (nx == ">" || nx == "|") i++
+      pend = "out"; continue
+    }
+    if (c == "<") {
+      if (inword && !dyn && cur ~ /^[0-9]+$/) { cur = ""; inword = 0 }
+      flushword()
+      if (substr(s, i + 1, 1) == "(") { i = cmdsub(i); continue }
+      if (substr(s, i, 3) == "<<<") { pend = "here"; i += 3; continue }
+      if (substr(s, i, 2) == "<<") { i = heredoc_start(i + 2); continue }
+      if (substr(s, i + 1, 1) == "&") { i += 2; while (substr(s, i, 1) ~ /[0-9-]/) i++; continue }
+      pend = "in"; i++; continue
+    }
+    cur = cur c; inword = 1; i++
+  }
+  if (!failed) flushword()
+  if (!failed && nh) fail("an unterminated heredoc")
+  if (failed) printf "E\t%s\n", failmsg
+  printf "N\t%d\n", seg
+}
+'
+}
+
+TK_KIND=()
+TK_SEG=()
+TK_FLAG=()
+TK_FILE=()
+TK_HEAD=()
+PARSE_ERROR=""
+NSEG=0
+
+load_tokens() {
+  local kind seg flag file head
+  while IFS=$'\t' read -r kind seg flag file head; do
+    case "$kind" in
+      E) PARSE_ERROR="$seg" ;;
+      N) NSEG="$seg" ;;
+      T|H|I|R)
+        TK_KIND+=("$kind")
+        TK_SEG+=("$seg")
+        TK_FLAG+=("$flag")
+        TK_FILE+=("$file")
+        TK_HEAD+=("$head")
+        ;;
+    esac
+  done < "$WORK/index"
+}
+
+S_IDX=()
+S_STDIN=""
+S_REDIR=()
+
+segment_tokens() {
+  local k=0
+  S_IDX=()
+  S_STDIN=""
+  S_REDIR=()
+  while [ "$k" -lt "${#TK_KIND[@]}" ]; do
+    if [ "${TK_SEG[$k]}" = "$1" ]; then
+      case "${TK_KIND[$k]}" in
+        T) S_IDX+=("$k") ;;
+        H|I) S_STDIN="$k" ;;
+        R) S_REDIR+=("$k") ;;
+      esac
+    fi
+    k=$((k + 1))
+  done
+}
+
+tok_text() {
+  local v
+  v=$(cat "${TK_FILE[$1]}"; printf x)
+  v="${v%x}"
+  printf '%s' "${v:${2:-0}}"
+}
+
+F_NAME=()
+F_VAL=()
+F_PRE=()
+POS=()
+
+scan_flags() {
+  local valflags=" $1 " p="$2" idx h name
+  F_NAME=()
+  F_VAL=()
+  F_PRE=()
+  POS=()
+  while [ "$p" -lt "${#S_IDX[@]}" ]; do
+    idx="${S_IDX[$p]}"
+    h="${TK_HEAD[$idx]}"
+    case "$h" in
+      --?*=*|-?=*)
+        name="${h%%=*}"
+        F_NAME+=("$name")
+        F_VAL+=("$idx")
+        F_PRE+=("$((${#name} + 1))")
+        ;;
+      -?*)
+        if [[ "$valflags" == *" $h "* ]] && [ "$((p + 1))" -lt "${#S_IDX[@]}" ]; then
+          F_NAME+=("$h")
+          F_VAL+=("${S_IDX[$((p + 1))]}")
+          F_PRE+=(0)
+          p=$((p + 1))
+        else
+          F_NAME+=("$h")
+          F_VAL+=(-1)
+          F_PRE+=(0)
+        fi
+        ;;
+      *) POS+=("$idx") ;;
+    esac
+    p=$((p + 1))
+  done
+}
+
+FF=-1
+
+flag_find() {
+  local j=0 name
+  FF=-1
+  while [ "$j" -lt "${#F_NAME[@]}" ]; do
+    for name in "$@"; do
+      [ "${F_NAME[$j]}" = "$name" ] && FF=$j
+    done
+    j=$((j + 1))
+  done
+}
+
+WORKDIR=""
+W_PATH=()
+W_CONTENT=()
+
+resolve_path() {
+  local path="$1"
+  while [ "${path#./}" != "$path" ]; do path="${path#./}"; done
+  case "$path" in
+    /*) printf '%s' "$path" ;;
+    "~/"*) printf '%s' "$HOME/${path#\~/}" ;;
+    *) if [ -n "$WORKDIR" ]; then printf '%s' "$WORKDIR/$path"; else printf '%s' "$path"; fi ;;
+  esac
+}
+
+READ_FAIL=""
+
+read_stdin_into() {
+  if [ -z "$S_STDIN" ]; then
+    READ_FAIL="comes from standard input the gate cannot see"
+    return 1
+  fi
+  if [ "${TK_FLAG[$S_STDIN]}" = "D" ]; then
+    READ_FAIL="comes from standard input built by a shell expansion the gate cannot evaluate"
+    return 1
+  fi
+  if [ "${TK_KIND[$S_STDIN]}" = "H" ]; then
+    cat "${TK_FILE[$S_STDIN]}" >> "$2"
+    return 0
+  fi
+  read_file_into "$(tok_text "$S_STDIN")" "$2" nostdin
+}
+
+read_file_into() {
+  local path="$1" out="$2" k=0 full
+  if [ "$path" = "-" ]; then
+    [ "${3:-}" = "nostdin" ] && { READ_FAIL="comes from standard input the gate cannot see"; return 1; }
+    read_stdin_into "" "$out"
+    return $?
+  fi
+  full=$(resolve_path "$path")
+  while [ "$k" -lt "${#W_PATH[@]}" ]; do
+    if [ "${W_PATH[$k]}" = "$full" ]; then
+      if [ -n "${W_CONTENT[$k]}" ]; then
+        cat "${W_CONTENT[$k]}" >> "$out"
+        return 0
+      fi
+      READ_FAIL="comes from $path, which this same command writes before posting, so the copy on disk is not what goes out"
+      return 1
+    fi
+    k=$((k + 1))
+  done
+  if [ -f "$full" ] && [ -r "$full" ]; then
+    cat "$full" >> "$out"
+    return 0
+  fi
+  READ_FAIL="comes from $path, which is not there to read yet"
+  return 1
+}
+
+text_into() {
+  local idx="$1" pre="$2" out="$3" asfile="$4"
+  if [ "${TK_FLAG[$idx]}" = "D" ]; then
+    if [ "$asfile" = "file" ]; then
+      READ_FAIL="names its file through a shell expansion the gate cannot evaluate"
+    else
+      READ_FAIL="comes from a shell expansion the gate cannot evaluate"
+    fi
+    return 1
+  fi
+  if [ "$asfile" = "file" ]; then
+    read_file_into "$(tok_text "$idx" "$pre")" "$out"
+    return $?
+  fi
+  tok_text "$idx" "$pre" >> "$out"
+  printf '\n' >> "$out"
+}
+
+NPOST=0
+P_MODE=()
+P_LABEL=()
+P_VERB=()
+P_KIND=()
+P_SEL=()
+P_REPO=()
+P_WD=()
+P_API=()
+P_JQ=()
+P_TITLE=()
+P_BODY=()
+P_NOTE=()
+
+new_post() {
+  NPOST=$((NPOST + 1))
+  P_MODE+=("$1")
+  P_LABEL+=("$2")
+  P_VERB+=("$3")
+  P_KIND+=("")
+  P_SEL+=("")
+  P_REPO+=("")
+  P_WD+=("$WORKDIR")
+  P_API+=("")
+  P_JQ+=("")
+  P_TITLE+=("")
+  P_BODY+=("")
+  P_NOTE+=("")
+  CUR=$((NPOST - 1))
+}
+
+note() {
+  P_NOTE[$CUR]="${P_NOTE[$CUR]:+${P_NOTE[$CUR]}; }$1"
+}
+
+take_text() {
+  local slot="$1" out="$2" asfile="$3"
+  shift 3
+  flag_find "$@"
+  [ "$FF" -ge 0 ] || return 1
+  if [ "${F_VAL[$FF]}" -lt 0 ]; then
+    note "$1 has no value the gate can read"
+    return 0
+  fi
+  : > "$out.part"
+  if text_into "${F_VAL[$FF]}" "${F_PRE[$FF]}" "$out.part" "$asfile"; then
+    cat "$out.part" >> "$out"
+    if [ "$slot" = "title" ] && [ "${P_MODE[$CUR]}" = "op" ]; then
+      P_TITLE[$CUR]="$out"
+    else
+      P_BODY[$CUR]="$out"
+    fi
+  else
+    note "the $slot $READ_FAIL"
+  fi
+  return 0
+}
+
+repo_flag() {
+  flag_find --repo -R
+  if [ "$FF" -ge 0 ] && [ "${F_VAL[$FF]}" -ge 0 ]; then
+    tok_text "${F_VAL[$FF]}" "${F_PRE[$FF]}"
+  fi
+}
+
+op_post() {
+  local sub="$1 $2" valflags pos
+  case "$sub" in
+    "pr create") valflags="-t --title -b --body -F --body-file -B --base -H --head -a --assignee -l --label -m --milestone -p --project -r --reviewer -T --template -R --repo --recover" ;;
+    "issue create") valflags="-t --title -b --body -F --body-file -a --assignee -l --label -m --milestone -p --project -T --template -R --repo --recover" ;;
+    *) valflags="-t --title -b --body -F --body-file -B --base -m --milestone -R --repo --add-assignee --remove-assignee --add-label --remove-label --add-project --remove-project --add-reviewer --remove-reviewer" ;;
+  esac
+  scan_flags "$valflags" "$3"
+  new_post op "gh $sub" "$2"
+  P_KIND[$CUR]="$1"
+  P_REPO[$CUR]=$(repo_flag)
+  [ "${#POS[@]}" -gt 0 ] && P_SEL[$CUR]=$(tok_text "${POS[0]}")
+  take_text title "$WORK/p$CUR.title" inline --title -t
+  take_text body "$WORK/p$CUR.body" file --body-file -F || take_text body "$WORK/p$CUR.body" inline --body -b
+}
+
+comment_post() {
+  local label="$1" valflags="$2" start="$3" titleflags="$4" inlineflags="$5" fileflags="$6" required="$7" out
+  scan_flags "$valflags" "$start"
+  if [ "$required" = "required" ]; then
+    flag_find $titleflags $inlineflags $fileflags
+    [ "$FF" -ge 0 ] || return 0
+  fi
+  new_post comment "$label" create
+  out="$WORK/p$CUR.body"
+  flag_find --edit-last
+  [ "$FF" -ge 0 ] && P_VERB[$CUR]="edit"
+  if [ -n "$titleflags" ]; then
+    take_text title "$out" inline $titleflags && [ -s "$out" ] && printf '\n' >> "$out"
+  fi
+  if [ -n "$fileflags" ] && take_text body "$out" file $fileflags; then
+    return 0
+  fi
+  [ -n "$inlineflags" ] && take_text body "$out" inline $inlineflags
+  return 0
+}
+
+field_key() {
+  local h="${TK_HEAD[$1]}"
+  h="${h:$2}"
+  printf '%s' "${h%%=*}"
+}
+
+api_field_text() {
+  local j="$1" out="$2" key pre idx val
+  idx="${F_VAL[$j]}"
+  [ "$idx" -ge 0 ] || return 1
+  key=$(field_key "$idx" "${F_PRE[$j]}")
+  pre=$((${F_PRE[$j]} + ${#key} + 1))
+  if [ "${TK_FLAG[$idx]}" = "D" ]; then
+    READ_FAIL="field $key comes from a shell expansion the gate cannot evaluate"
+    return 1
+  fi
+  val=$(tok_text "$idx" "$pre")
+  case "${F_NAME[$j]}" in
+    -F|--field)
+      if [ "${val:0:1}" = "@" ]; then
+        read_file_into "${val:1}" "$out" || { READ_FAIL="field $key $READ_FAIL"; return 1; }
+        printf '\n' >> "$out"
+        return 0
+      fi
+      ;;
+  esac
+  printf '%s\n' "$val" >> "$out"
+}
+
+is_field_flag() {
+  case "$1" in
+    -f|--raw-field|-F|--field) return 0 ;;
+  esac
+  return 1
+}
+
+api_post() {
+  local start="$1" path method="" rest kind="" verb="create" jqexpr=".body" j key out input=""
+  scan_flags "-X --method -f --raw-field -F --field -H --header --input -q --jq -t --template --hostname -p --preview --cache" "$start"
+  [ "${#POS[@]}" -gt 0 ] || return 0
+  path=$(tok_text "${POS[0]}")
+  flag_find -X --method
+  if [ "$FF" -ge 0 ] && [ "${F_VAL[$FF]}" -ge 0 ]; then
+    method=$(tok_text "${F_VAL[$FF]}" "${F_PRE[$FF]}" | tr '[:lower:]' '[:upper:]')
+  fi
+  flag_find --input
+  [ "$FF" -ge 0 ] && [ "${F_VAL[$FF]}" -ge 0 ] && input="$FF"
+  if [ -z "$method" ]; then
+    method=GET
+    j=0
+    while [ "$j" -lt "${#F_NAME[@]}" ]; do
+      is_field_flag "${F_NAME[$j]}" && method=POST
+      j=$((j + 1))
+    done
+    [ -n "$input" ] && method=POST
+  fi
+
+  path="${path#/}"
+  path="${path%%\?*}"
+
+  if [ "$path" = "graphql" ]; then
+    graphql_post "$input"
+    return 0
+  fi
+
+  [[ "$path" =~ ^repos/[^/]+/[^/]+/(.+)$ ]] || return 0
+  rest="${BASH_REMATCH[1]}"
+
+  if [ "$method" = "POST" ] && [[ "$rest" =~ ^issues/[^/]+/comments$ ]] && ! [[ "$rest" =~ ^issues/comments/ ]]; then
+    kind=comment
+  elif [ "$method" = "PATCH" ] && [[ "$rest" =~ ^issues/comments/[^/]+$ ]]; then
+    kind=comment; verb=edit
+  elif [ "$method" = "POST" ] && [[ "$rest" =~ ^pulls/[^/]+/comments(/[^/]+/replies)?$ ]] && ! [[ "$rest" =~ ^pulls/comments/ ]]; then
+    kind=comment
+  elif [ "$method" = "PATCH" ] && [[ "$rest" =~ ^pulls/comments/[^/]+$ ]]; then
+    kind=comment; verb=edit
+  elif [ "$method" = "POST" ] && [[ "$rest" =~ ^pulls/[^/]+/reviews$ ]]; then
+    kind=review
+  elif [ "$method" = "PUT" ] && [[ "$rest" =~ ^pulls/[^/]+/reviews/[^/]+$ ]]; then
+    kind=review; verb=edit
+  elif [ "$method" = "POST" ] && [ "$rest" = "releases" ]; then
+    kind=release
+  elif [ "$method" = "PATCH" ] && [[ "$rest" =~ ^releases/[^/]+$ ]]; then
+    kind=release; verb=edit
+    jqexpr='[.name, .body] | map(select(type == "string" and . != "")) | join("\n\n")'
+  fi
+  [ -n "$kind" ] || return 0
+
+  new_post comment "gh api $method $path" "$verb"
+  if [ "$verb" = "edit" ]; then
+    P_API[$CUR]="$path"
+    P_JQ[$CUR]="$jqexpr"
+  fi
+  out="$WORK/p$CUR.body"
+
+  if [ "$kind" = "release" ]; then
+    api_text_fields "$out" name
+  fi
+  api_text_fields "$out" body
+
+  if [ -n "$input" ]; then
+    : > "$WORK/p$CUR.json"
+    if ! text_into "${F_VAL[$input]}" "${F_PRE[$input]}" "$WORK/p$CUR.json" file; then
+      note "the --input body $READ_FAIL"
+    elif jq -r '[.name?, .body?, (.comments[]?.body?)] | map(select(type == "string")) | join("\n\n")' "$WORK/p$CUR.json" >> "$out" 2>/dev/null; then
+      P_BODY[$CUR]="$out"
+    else
+      note "the --input body is not JSON the gate can read"
+    fi
+  fi
+}
+
+api_text_fields() {
+  local out="$1" want="$2" j=0 key
+  while [ "$j" -lt "${#F_NAME[@]}" ]; do
+    if is_field_flag "${F_NAME[$j]}" && [ "${F_VAL[$j]}" -ge 0 ]; then
+      key=$(field_key "${F_VAL[$j]}" "${F_PRE[$j]}")
+      if [ "$key" = "$want" ] || { [ "$want" = "body" ] && [[ "$key" == *"[body]" ]]; }; then
+        : > "$out.part"
+        if api_field_text "$j" "$out.part"; then
+          cat "$out.part" >> "$out"
+          printf '\n' >> "$out"
+          P_BODY[$CUR]="$out"
+        else
+          note "$READ_FAIL"
+        fi
+      fi
+    fi
+    j=$((j + 1))
+  done
+}
+
+GRAPHQL_MUTATIONS='(addComment|updateIssueComment|addPullRequestReview|addPullRequestReviewComment|addPullRequestReviewThreadReply|updatePullRequestReviewComment|addDiscussionComment|updateDiscussionComment)[[:space:]]*\('
+
+graphql_bodies() {
+  LC_ALL=C awk '
+{ q = (NR == 1) ? $0 : q "\n" $0 }
+END {
+  while (match(q, /(^|[^A-Za-z0-9_$])body[ \t\n]*:[ \t\n]*/)) {
+    q = substr(q, RSTART + RLENGTH)
+    c = substr(q, 1, 1)
+    if (c == "$" && match(q, /^\$[A-Za-z_][A-Za-z0-9_]*/)) {
+      printf "V\t%s\n", substr(q, 2, RLENGTH - 1)
+    } else if (c == "\"" && substr(q, 1, 3) != "\"\"\"") {
+      k = 2
+      while (k <= length(q) && substr(q, k, 1) != "\"") { if (substr(q, k, 1) == "\\") k++; k++ }
+      if (k > length(q)) { print "U"; exit }
+      printf "S\t%s\n", substr(q, 1, k)
+      q = substr(q, k + 1)
+    } else {
+      print "U"
+    }
+  }
+}
+' "$1"
+}
+
+graphql_post() {
+  local input="$1" j=0 key query="$WORK/q$NPOST" found="" verb=create out kind name raw vars="$WORK/v$NPOST" matched
+  : > "$query"
+  while [ "$j" -lt "${#F_NAME[@]}" ]; do
+    if is_field_flag "${F_NAME[$j]}" && [ "${F_VAL[$j]}" -ge 0 ]; then
+      key=$(field_key "${F_VAL[$j]}" "${F_PRE[$j]}")
+      if [ "$key" = "query" ]; then
+        found=field
+        api_field_text "$j" "$query" || found=unreadable
+      fi
+    fi
+    j=$((j + 1))
+  done
+  if [ -z "$found" ] && [ -n "$input" ]; then
+    : > "$vars"
+    if text_into "${F_VAL[$input]}" "${F_PRE[$input]}" "$vars" file && jq -r '.query // empty' "$vars" > "$query" 2>/dev/null; then
+      found=input
+    else
+      found=unreadable
+    fi
+  fi
+
+  if [ "$found" = "unreadable" ]; then
+    grep -qE "${GRAPHQL_MUTATIONS%\\(}" "$query" "${TK_FILE[@]}" 2>/dev/null || return 0
+    new_post comment "gh api graphql" create
+    note "the mutation text cannot be read, so the body it posts cannot be found"
+    return 0
+  fi
+  grep -qE "$GRAPHQL_MUTATIONS" "$query" 2>/dev/null || return 0
+  grep -qE '(^|[^A-Za-z])update[A-Za-z]*Comment[[:space:]]*\(' "$query" && verb=edit
+
+  new_post comment "gh api graphql" "$verb"
+  out="$WORK/p$CUR.body"
+  graphql_bodies "$query" > "$WORK/gb$CUR"
+  if [ ! -s "$WORK/gb$CUR" ]; then
+    note "the mutation carries no body the gate can find"
+    return 0
+  fi
+  while IFS=$'\t' read -r kind raw; do
+    case "$kind" in
+      S)
+        if printf '%s' "$raw" | jq -r . >> "$out" 2>/dev/null; then
+          P_BODY[$CUR]="$out"
+        else
+          note "the inline body is not a string the gate can read"
+        fi
+        ;;
+      V)
+        matched=""
+        j=0
+        while [ "$j" -lt "${#F_NAME[@]}" ]; do
+          if is_field_flag "${F_NAME[$j]}" && [ "${F_VAL[$j]}" -ge 0 ]; then
+            key=$(field_key "${F_VAL[$j]}" "${F_PRE[$j]}")
+            if [ "$key" = "$raw" ]; then
+              matched=yes
+              : > "$out.part"
+              if api_field_text "$j" "$out.part"; then
+                cat "$out.part" >> "$out"
+                P_BODY[$CUR]="$out"
+              else
+                note "$READ_FAIL"
+              fi
+            fi
+          fi
+          j=$((j + 1))
+        done
+        if [ -z "$matched" ] && [ "$found" = "input" ] && jq -e --arg n "$raw" '.variables[$n] | type == "string"' "$vars" >/dev/null 2>&1; then
+          matched=yes
+          jq -r --arg n "$raw" '.variables[$n]' "$vars" >> "$out"
+          P_BODY[$CUR]="$out"
+        fi
+        [ -n "$matched" ] || note "the body variable \$$raw is not passed to the command"
+        ;;
+      *) note "the mutation builds its body in a form the gate cannot read" ;;
+    esac
+  done < "$WORK/gb$CUR"
+}
+
+WRAPPERS=" bash sh zsh dash ksh eval xargs sudo parallel watch "
+
+plan_segment() {
+  local seg="$1" p=0 h base s1 s2 start k
+  segment_tokens "$seg"
+  while [ "$p" -lt "${#S_IDX[@]}" ]; do
+    h="${TK_HEAD[${S_IDX[$p]}]}"
+    case "$h" in
+      if|then|else|elif|do|while|until|'!'|'{'|'}'|time|command|builtin|nohup|exec|env) p=$((p + 1)); continue ;;
+      timeout|gtimeout) p=$((p + 2)); continue ;;
+    esac
+    if [[ "$h" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+      p=$((p + 1))
+      continue
+    fi
+    break
+  done
+
+  if [ "$p" -ge "${#S_IDX[@]}" ]; then
+    record_writes "" "$seg"
+    return 0
+  fi
+  base="${TK_HEAD[${S_IDX[$p]}]}"
+  base="${base##*/}"
+
+  case "$base" in
+    cd)
+      if [ "$((p + 1))" -lt "${#S_IDX[@]}" ]; then
+        WORKDIR=$(resolve_path "$(tok_text "${S_IDX[$((p + 1))]}")")
+      fi
+      return 0
+      ;;
+    gh) ;;
+    *)
+      record_writes "$base" "$seg"
+      if [[ "$WRAPPERS" == *" $base "* ]]; then
+        k=$((p + 1))
+        while [ "$k" -lt "${#S_IDX[@]}" ]; do
+          if grep -qE "$POST_PATTERN" "${TK_FILE[${S_IDX[$k]}]}" 2>/dev/null; then
+            WRAPPED="$base"
+          fi
+          k=$((k + 1))
+        done
+      fi
+      return 0
+      ;;
+  esac
+
+  [ "$((p + 1))" -lt "${#S_IDX[@]}" ] || return 0
+  s1="${TK_HEAD[${S_IDX[$((p + 1))]}]}"
+  s2=""
+  [ "$((p + 2))" -lt "${#S_IDX[@]}" ] && s2="${TK_HEAD[${S_IDX[$((p + 2))]}]}"
+  start=$((p + 3))
+
+  case "$s1 $s2" in
+    "pr create"|"pr edit"|"issue create"|"issue edit")
+      op_post "$s1" "$s2" "$start"
+      ;;
+    "pr comment"|"issue comment")
+      comment_post "gh $s1 comment" "-b --body -F --body-file -R --repo" "$start" "" "--body -b" "--body-file -F" optional
+      ;;
+    "pr close"|"issue close"|"pr reopen"|"issue reopen")
+      comment_post "gh $s1 $s2 --comment" "-c --comment -r --reason -R --repo --duplicate-of" "$start" "" "--comment -c" "" required
+      ;;
+    "pr review")
+      comment_post "gh pr review" "-b --body -F --body-file -R --repo" "$start" "" "--body -b" "--body-file -F" required
+      ;;
+    "pr merge")
+      comment_post "gh pr merge" "-b --body -F --body-file -t --subject -A --author-email --match-head-commit -R --repo" "$start" "--subject -t" "--body -b" "--body-file -F" required
+      ;;
+    "release create"|"release edit")
+      comment_post "gh release $s2" "-n --notes -F --notes-file -t --title --target --discussion-category --notes-start-tag --tag -R --repo" "$start" "--title -t" "--notes -n" "--notes-file -F" required
+      ;;
+    api*)
+      api_post "$((p + 2))"
+      ;;
+  esac
+}
+
+record_writes() {
+  local base="$1" k=0 idx content=""
+  [ "${#S_REDIR[@]}" -gt 0 ] || return 0
+  if [ "$base" = "cat" ] && [ -n "$S_STDIN" ] && [ "${TK_KIND[$S_STDIN]}" = "H" ] && [ "${TK_FLAG[$S_STDIN]}" = "L" ]; then
+    content="${TK_FILE[$S_STDIN]}"
+  fi
+  while [ "$k" -lt "${#S_REDIR[@]}" ]; do
+    idx="${S_REDIR[$k]}"
+    W_PATH+=("$(resolve_path "$(tok_text "$idx")")")
+    if [ "${TK_FLAG[$idx]}" = "D" ]; then W_CONTENT+=(""); else W_CONTENT+=("$content"); fi
+    k=$((k + 1))
+  done
+}
+
+fetch_live_field() {
+  local field="$1" kind="$2" selector="$3" repo="$4" workdir="$5" out
+
+  [ "$kind" = "issue" ] && [ -z "$selector" ] && return 1
 
   local -a view
-  view=(gh "$KIND" view)
+  view=(gh "$kind" view)
   [ -n "$selector" ] && view+=("$selector")
   [ -n "$repo" ] && view+=(--repo "$repo")
   view+=(--json "$field")
@@ -495,23 +1337,88 @@ fetch_live_field() {
   printf '%s' "$out" | jq -e -r --arg f "$field" '.[$f] // ""' 2>/dev/null
 }
 
-BODY=$(extract_body)
-TITLE=$(extract_title)
+fetch_api_text() {
+  local path="$1" jqexpr="$2" workdir="$3" out
+  case "$path" in *'$'*|*'`'*) return 1 ;; esac
+  out=$(
+    if [ -n "$workdir" ] && [ -d "$workdir" ]; then cd "$workdir" || exit 1; fi
+    run_bounded gh api "$path" --jq "$jqexpr" 2>/dev/null
+  ) || return 1
+  printf '%s' "$out"
+}
 
-HAS_BODY=""; [ -n "${BODY//[[:space:]]/}" ] && HAS_BODY="yes"
-HAS_TITLE=""; [ -n "${TITLE//[[:space:]]/}" ] && HAS_TITLE="yes"
+WORK=$(mktemp -d) || { emit "$ADVICE"; exit 0; }
+trap 'rm -rf "$WORK"' EXIT
 
-GUIDANCE="$ADVICE"
-[ -n "$HAS_TITLE" ] && GUIDANCE="$TITLE_ADVICE $ADVICE"
-[ -n "$HAS_TITLE" ] && [ -z "$HAS_BODY" ] && GUIDANCE="$TITLE_ADVICE"
+printf '%s' "$COMMAND" | tokenize > "$WORK/index" 2>/dev/null
+load_tokens
+[ "$NSEG" -gt 0 ] || PARSE_ERROR="${PARSE_ERROR:-a tokenizer failure}"
 
-if [ -z "$HAS_BODY" ] && [ -z "$HAS_TITLE" ]; then
-  emit "$GUIDANCE"
+WRAPPED=""
+CUR=0
+seg=1
+while [ "$seg" -le "$NSEG" ]; do
+  plan_segment "$seg"
+  seg=$((seg + 1))
+done
+
+if [ "$NPOST" -eq 0 ]; then
+  if [ -n "$PARSE_ERROR" ]; then
+    emit "This command looks like it posts to GitHub, but the gate could not parse it ($PARSE_ERROR), so nothing in it was measured. Check what it posts against these rules. $COMMENT_ADVICE"
+  elif [ -n "$WRAPPED" ]; then
+    emit "This command runs a GitHub post through $WRAPPED, which the gate does not look inside, so nothing in it was measured. Check what it posts against these rules. $COMMENT_ADVICE"
+  fi
   exit 0
 fi
 
-WORK=$(mktemp -d) || { emit "$GUIDANCE"; exit 0; }
-trap 'rm -rf "$WORK"' EXIT
+NEED_TITLE_ADVICE=""
+NEED_ADVICE=""
+NEED_COMMENT_ADVICE=""
+MEASURABLE=""
+q=0
+while [ "$q" -lt "$NPOST" ]; do
+  if [ "${P_MODE[$q]}" = "op" ]; then
+    if [ -n "${P_TITLE[$q]}" ] && [ -n "$(tr -d '[:space:]' < "${P_TITLE[$q]}")" ]; then HT=yes; else HT=""; P_TITLE[$q]=""; fi
+    if [ -n "${P_BODY[$q]}" ] && [ -n "$(tr -d '[:space:]' < "${P_BODY[$q]}")" ]; then HB=yes; else HB=""; P_BODY[$q]=""; fi
+    [ -n "$HT" ] && NEED_TITLE_ADVICE=yes
+    { [ -n "$HB" ] || [ -z "$HT" ]; } && NEED_ADVICE=yes
+  else
+    NEED_COMMENT_ADVICE=yes
+    if [ -z "${P_BODY[$q]}" ] || [ -z "$(tr -d '[:space:]' < "${P_BODY[$q]}")" ]; then P_BODY[$q]=""; fi
+  fi
+  { [ -n "${P_TITLE[$q]}" ] || [ -n "${P_BODY[$q]}" ]; } && MEASURABLE=yes
+  q=$((q + 1))
+done
+
+GUIDANCE=""
+[ -n "$NEED_TITLE_ADVICE" ] && GUIDANCE="$TITLE_ADVICE"
+[ -n "$NEED_ADVICE" ] && GUIDANCE="${GUIDANCE:+$GUIDANCE }$ADVICE"
+[ -n "$NEED_COMMENT_ADVICE" ] && GUIDANCE="${GUIDANCE:+$GUIDANCE }$COMMENT_ADVICE"
+
+EXTRA=""
+[ -n "$PARSE_ERROR" ] && EXTRA="Part of this command could not be parsed ($PARSE_ERROR), so any post in that part was not measured."
+[ -n "$WRAPPED" ] && EXTRA="${EXTRA:+$EXTRA }Part of this command runs a GitHub post through $WRAPPED, which the gate does not look inside, so that post was not measured."
+
+if [ -z "$MEASURABLE" ]; then
+  NOTES=""
+  q=0
+  while [ "$q" -lt "$NPOST" ]; do
+    if [ -n "${P_NOTE[$q]}" ]; then
+      NOTES="${NOTES:+$NOTES
+}- \`${P_LABEL[$q]}\`: ${P_NOTE[$q]}."
+    fi
+    q=$((q + 1))
+  done
+  if [ -n "$NOTES" ] || [ -n "$EXTRA" ]; then
+    emit "${NOTES:+The gate could not read the text of every post in this command, so these went through unmeasured:
+
+$NOTES
+Check what they post against these rules. }${EXTRA:+$EXTRA }$GUIDANCE"
+  else
+    emit "$GUIDANCE"
+  fi
+  exit 0
+fi
 
 PHRASES="$WORK/phrases"
 load_phrases > "$PHRASES" 2>/dev/null
@@ -527,91 +1434,170 @@ if [ ! -s "$NEGATIONS" ]; then
   exit 0
 fi
 
-REFUSED=""
-ADVISORY=""
+REFUSED_BLOCKS=""
+ADVISORY_BLOCKS=""
 
-collect() {
-  local unverified="$1" findings="$2"
-  [ -n "$findings" ] || return 0
-  if [ -n "$unverified" ]; then
-    ADVISORY="${ADVISORY:+$ADVISORY
-}$findings"
+add_block() {
+  local target="$1" q="$2" text="$3"
+  if [ "$NPOST" -gt 1 ]; then
+    text="Post $((q + 1)) of $NPOST (\`${P_LABEL[$q]}\`): $text"
+  fi
+  if [ "$target" = "refused" ]; then
+    REFUSED_BLOCKS="${REFUSED_BLOCKS:+$REFUSED_BLOCKS
+
+}$text"
   else
-    REFUSED="${REFUSED:+$REFUSED
-}$findings"
+    ADVISORY_BLOCKS="${ADVISORY_BLOCKS:+$ADVISORY_BLOCKS
+
+}$text"
   fi
 }
 
-MODE="create"
+measure_op() {
+  local q="$1" REFUSED="" ADVISORY="" MODE="create" TITLE_MODE BODY_MODE TITLE_UNVERIFIED UNVERIFIED TITLE_VIOLATIONS VIOLATIONS LIVE LIVE_TITLE
+  local w="$WORK/m$q"
 
-if [ -n "$HAS_TITLE" ]; then
-  printf '%s\n' "$TITLE" | measure_title > "$WORK/tcur"
-  printf '' | measure_title > "$WORK/tbase"
-
-  TITLE_MODE="create"
-  TITLE_UNVERIFIED=""
-  if [ "$VERB" = "edit" ]; then
-    if LIVE_TITLE=$(fetch_live_field title); then
-      TITLE_MODE="edit"
-      MODE="edit"
-      printf '%s\n' "$LIVE_TITLE" | measure_title > "$WORK/tbase"
+  collect() {
+    local unverified="$1" findings="$2"
+    [ -n "$findings" ] || return 0
+    if [ -n "$unverified" ]; then
+      ADVISORY="${ADVISORY:+$ADVISORY
+}$findings"
     else
-      TITLE_UNVERIFIED="yes"
+      REFUSED="${REFUSED:+$REFUSED
+}$findings"
+    fi
+  }
+
+  if [ -n "${P_TITLE[$q]}" ]; then
+    measure_title < "${P_TITLE[$q]}" > "$w.tcur"
+    printf '' | measure_title > "$w.tbase"
+
+    TITLE_MODE="create"
+    TITLE_UNVERIFIED=""
+    if [ "${P_VERB[$q]}" = "edit" ]; then
+      if LIVE_TITLE=$(fetch_live_field title "${P_KIND[$q]}" "${P_SEL[$q]}" "${P_REPO[$q]}" "${P_WD[$q]}"); then
+        TITLE_MODE="edit"
+        MODE="edit"
+        printf '%s\n' "$LIVE_TITLE" | measure_title > "$w.tbase"
+      else
+        TITLE_UNVERIFIED="yes"
+      fi
+    fi
+
+    TITLE_VIOLATIONS=$(compare_title "$TITLE_MODE" "$w.tbase" "$w.tcur" 2>/dev/null)
+    if [ $? -ne 0 ]; then
+      deny "The datum-platform:pr-conventions gate could not measure this title, so it refused rather than pass it unchecked. Report the gate failure instead of retrying the same call."
+      exit 0
+    fi
+    collect "$TITLE_UNVERIFIED" "$TITLE_VIOLATIONS"
+  fi
+
+  if [ -n "${P_BODY[$q]}" ]; then
+    measure < "${P_BODY[$q]}" > "$w.cur"
+    printf '' | measure > "$w.base"
+
+    BODY_MODE="create"
+    UNVERIFIED=""
+    if [ "${P_VERB[$q]}" = "edit" ]; then
+      if LIVE=$(fetch_live_field body "${P_KIND[$q]}" "${P_SEL[$q]}" "${P_REPO[$q]}" "${P_WD[$q]}"); then
+        BODY_MODE="edit"
+        MODE="edit"
+        printf '%s\n' "$LIVE" | measure > "$w.base"
+      else
+        UNVERIFIED="yes"
+      fi
+    fi
+
+    VIOLATIONS=$(compare "$BODY_MODE" "$w.base" "$w.cur" op 2>/dev/null)
+    if [ $? -ne 0 ]; then
+      deny "The datum-platform:pr-conventions gate could not measure this body, so it refused rather than pass it unchecked. Report the gate failure instead of retrying the same call."
+      exit 0
+    fi
+    collect "$UNVERIFIED" "$VIOLATIONS"
+  fi
+
+  if [ -n "$REFUSED" ]; then
+    if [ "$MODE" = "edit" ]; then
+      add_block refused "$q" "This edit moves the posted title or body further from the datum-platform:pr-conventions bar:
+
+$REFUSED
+An edit only has to leave the post no worse than it found it, so revise what the edit adds. Anything already in the post is not yours to fix."
+    else
+      add_block refused "$q" "This post misses the datum-platform:pr-conventions bar:
+
+$REFUSED
+Revise it and post again."
+    fi
+  elif [ -n "$ADVISORY" ]; then
+    add_block advisory "$q" "The posted version could not be read, so this edit was allowed through without comparing it. What you are about to post misses the datum-platform:pr-conventions bar here:
+
+$ADVISORY
+Fix whichever of those your edit introduced. Leave alone anything that was already in the post."
+  fi
+}
+
+measure_comment() {
+  local q="$1" w="$WORK/m$q" mode="create" unverified="" live findings
+  measure < "${P_BODY[$q]}" > "$w.cur"
+  printf '' | measure > "$w.base"
+
+  if [ -n "${P_API[$q]}" ]; then
+    if live=$(fetch_api_text "${P_API[$q]}" "${P_JQ[$q]}" "${P_WD[$q]}"); then
+      mode="edit"
+      printf '%s\n' "$live" | measure > "$w.base"
+    else
+      unverified="yes"
     fi
   fi
 
-  TITLE_VIOLATIONS=$(compare_title "$TITLE_MODE" "$WORK/tbase" "$WORK/tcur" 2>/dev/null)
-  if [ $? -ne 0 ]; then
-    deny "The datum-platform:pr-conventions gate could not measure this title, so it refused rather than pass it unchecked. Report the gate failure instead of retrying the same call."
-    exit 0
-  fi
-  collect "$TITLE_UNVERIFIED" "$TITLE_VIOLATIONS"
-fi
-
-if [ -n "$HAS_BODY" ]; then
-  printf '%s\n' "$BODY" | measure > "$WORK/cur"
-  printf '' | measure > "$WORK/base"
-
-  BODY_MODE="create"
-  UNVERIFIED=""
-  if [ "$VERB" = "edit" ]; then
-    if LIVE=$(fetch_live_field body); then
-      BODY_MODE="edit"
-      MODE="edit"
-      printf '%s\n' "$LIVE" | measure > "$WORK/base"
-    else
-      UNVERIFIED="yes"
-    fi
-  fi
-
-  VIOLATIONS=$(compare "$BODY_MODE" "$WORK/base" "$WORK/cur" 2>/dev/null)
+  findings=$(compare "$mode" "$w.base" "$w.cur" comment 2>/dev/null)
   if [ $? -ne 0 ]; then
     deny "The datum-platform:pr-conventions gate could not measure this body, so it refused rather than pass it unchecked. Report the gate failure instead of retrying the same call."
     exit 0
   fi
-  collect "$UNVERIFIED" "$VIOLATIONS"
-fi
+  [ -n "$findings" ] || return 0
 
-if [ -n "$REFUSED" ]; then
-  if [ "$MODE" = "edit" ]; then
-    deny "This edit moves the posted title or body further from the datum-platform:pr-conventions bar:
+  if [ -n "$unverified" ]; then
+    add_block advisory "$q" "The posted text could not be read, so this edit was allowed through without comparing it. What you are about to post misses the rules that hold for every GitHub post here:
 
-$REFUSED
-An edit only has to leave the post no worse than it found it, so revise what the edit adds. Anything already in the post is not yours to fix. $GUIDANCE"
+$findings
+Fix whichever of those your edit introduced. Leave alone anything that was already there."
+  elif [ "$mode" = "edit" ]; then
+    add_block refused "$q" "This edit moves the posted text further from the rules that hold for every GitHub post (datum-platform:pr-conventions):
+
+$findings
+An edit only has to leave the text no worse than it found it, so revise what the edit adds."
   else
-    deny "This post misses the datum-platform:pr-conventions bar:
+    add_block refused "$q" "This post misses the rules that hold for every GitHub post (datum-platform:pr-conventions):
 
-$REFUSED
-Revise it and post again. $GUIDANCE"
+$findings
+Revise it and post again."
   fi
+}
+
+q=0
+while [ "$q" -lt "$NPOST" ]; do
+  if [ "${P_MODE[$q]}" = "op" ]; then
+    if [ -n "${P_TITLE[$q]}" ] || [ -n "${P_BODY[$q]}" ]; then
+      measure_op "$q"
+    fi
+  elif [ -n "${P_BODY[$q]}" ]; then
+    measure_comment "$q"
+  fi
+  if [ -n "${P_NOTE[$q]}" ]; then
+    add_block advisory "$q" "The gate could not measure all of this post, because ${P_NOTE[$q]}, so that part goes through unmeasured. Check it against the rules below."
+  fi
+  q=$((q + 1))
+done
+
+if [ -n "$REFUSED_BLOCKS" ]; then
+  deny "$REFUSED_BLOCKS $GUIDANCE"
   exit 0
 fi
 
-if [ -n "$ADVISORY" ]; then
-  emit "The posted version could not be read, so this edit was allowed through without comparing it. What you are about to post misses the datum-platform:pr-conventions bar here:
-
-$ADVISORY
-Fix whichever of those your edit introduced. Leave alone anything that was already in the post. $GUIDANCE"
+if [ -n "$ADVISORY_BLOCKS" ] || [ -n "$EXTRA" ]; then
+  emit "${ADVISORY_BLOCKS:+$ADVISORY_BLOCKS }${EXTRA:+$EXTRA }$GUIDANCE"
   exit 0
 fi
 
