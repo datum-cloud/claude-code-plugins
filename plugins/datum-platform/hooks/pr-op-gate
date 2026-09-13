@@ -277,7 +277,7 @@ fence { next }
   for (i = 2; i <= n; i += 2) {
     span = part[i]
     if (span ~ /^https?:/) continue
-    if (span ~ /^\/[a-z0-9_~-]+(\/[a-z0-9_~{}-]+){0,2}$/) continue
+    if (span ~ /^\/[a-z0-9_~-]+(\/[a-z0-9_~{}-]+)?(\/[a-z0-9_~{}-]+)?$/) continue
     if (span ~ /\//) code = 1
     else if (span ~ /\.(go|ya?ml|json|md|sh|ts|tsx|js|py|tf)$/) code = 1
     else if (span ~ /\(\)/) code = 1
