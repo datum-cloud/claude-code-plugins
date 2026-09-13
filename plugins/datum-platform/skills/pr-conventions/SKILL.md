@@ -160,9 +160,22 @@ Fixes #<issue>
 ```
 
 Issue body: what needs to happen, why it needs to happen, what success looks
-like.
+like. Head the success section `## Acceptance criteria`, in an epic as well as
+an issue, and use the same words when prose refers to it.
 Outcome-focused acceptance criteria: "a user can do X", not "the handler calls
 Y". Keep the solution out of the description; it belongs in comments.
+
+```markdown
+## Summary
+
+<What is broken, and for whom.>
+
+<Why it needs fixing now.>
+
+## Acceptance criteria
+
+- [ ] <A user or operator can do X>
+```
 
 Add `## Breaking changes` when something downstream must migrate. Add
 `## Screenshots` for UI work. Omit empty sections.
@@ -177,7 +190,9 @@ characters. Describe the outcome, not the mechanism.
 **Avoid:** `feat: Add ActivityFeed component with websocket polling`
 
 Issue titles state the symptom in plain language: `Users can't see who last
-modified a resource`, not `NullPointerException in ResourceController`.
+modified a resource`, not `NullPointerException in ResourceController`. Keep
+them to a headline, a subject and a verb in three to six words, as
+`clear-writing` describes.
 
 The title carries its own countable rule, and `clear-writing` owns it: name the
 subject in the words a reader outside the team would use, keep the title

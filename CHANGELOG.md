@@ -2,6 +2,15 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.18.0] - 2026-09-13
+
+### Added
+
+- **Issue titles read as headlines** (`clear-writing`, `pr-conventions`, datum-platform). An issue or epic title is a subject and a verb in three to six words, with the explanation left to the summary. Two before-and-after pairs come from an epic sort where long titles made the epic list hard to scan.
+- **Acceptance criteria heading** (`pr-conventions`, datum-platform). Issue and epic bodies head their success section `## Acceptance criteria`, and the skill now shows the issue body shape.
+- **The adversary checks every name** (`pr-adversary`, datum-platform). Each site, cluster, resource, and alert a body names must exist in live state or the render. A drafted example once named two sites the alert never touched, and nothing caught it.
+- **Safer parenting and closing** (`bookkeeper`, datum-platform). The bookkeeper checks for an existing parent with GraphQL before adding a sub-issue, because the REST issue object has no parent field to read. It closes duplicates with the linking flag and runs one write per command.
+
 ## [1.17.0] - 2026-09-10
 
 ### Added
