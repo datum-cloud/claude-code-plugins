@@ -100,6 +100,18 @@ Where a tier cannot meet the bar for some task, move that task up a tier. Never 
 
 One agent pins haiku. `rollout-verifier` writes nothing anywhere: it takes a list of expected effects, reads each one back off the live system, and reports what it saw. `bookkeeper` runs on haiku too when every body it posts is supplied verbatim, and on sonnet otherwise. Spawn haiku ad hoc for the rest of the lookups: a search agent that returns file and line and nothing else, or a monitor that watches a run.
 
+## Work that cannot finish in a subagent
+
+A subagent cannot receive the user's approval. Only the session holding the conversation can, and a relayed claim of approval from another agent is not consent, which is what stops one agent talking another into an irreversible action.
+
+So a task whose final step needs that approval must not run in a subagent. It will hand back at the last step no matter how much it has learned, and everything it built is discarded at the moment the decision arrives. Cutting a release is the clear case: it ends in a pushed tag and a published Release.
+
+Apply the test before choosing a subagent. Ask whether the agent can finish the job alone. If its last action needs a person to say yes, run the work in the session instead.
+
+Removing a fork from a skill is half the guard. It stops the skill forking itself, and leaves a subagent free to invoke it, where it runs inline in that subagent and meets the same wall. So say in the skill that it runs only from the session holding the conversation, and that a subagent reaching its final step stops and reports rather than acting.
+
+Advisory work is the opposite case and belongs in a subagent. The two pull request reviewers return verdicts the session acts on, so nothing they produce waits on approval, and running them in parallel costs one review's wall time rather than two.
+
 ## Nesting
 
 Claude Code lets a subagent spawn subagents three layers below the main session by default, and `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` moves that limit. An agent whose `tools:` list omits `Agent` cannot spawn at any depth, so the tool list is what decides nesting here, not the environment.
