@@ -6,10 +6,6 @@ description: >
   version from the latest tag, summarizes merged PRs since the last release,
   drafts release notes in the established style, and publishes via gh release
   create. Works for any datum-cloud service repository.
-tools: Read, Bash
-model: sonnet
-context: fork
-agent: general-purpose
 argument-hint: "[vX.Y.Z] [--draft] [--patch|--minor|--major]"
 ---
 
@@ -17,7 +13,9 @@ argument-hint: "[vX.Y.Z] [--draft] [--patch|--minor|--major]"
 
 Generate and publish a new GitHub release for this repository.
 
-Cutting a release follows the recipe below, so it runs on sonnet. Where the recipe does not fit, such as a version that needs a judgment call or a preflight that fails for a reason not listed here, stop and report rather than improvising. The `model-tiers` skill has the tiers and the escalation rule.
+Cutting a release follows the recipe below. Where the recipe does not fit, such as a version that needs a judgment call or a preflight that fails for a reason not listed here, stop and report rather than improvising.
+
+This skill runs in the session that invoked it, rather than in a subagent. A release ends in publishing a tag and a Release object, which is irreversible and outward-facing, so it needs the user's approval. Only the session holding the conversation can receive that approval, and a relayed claim of it from another agent is not consent. A subagent therefore has to hand the release back at its final step, discarding everything it learned at the moment the decision arrives. See `model-tiers` for which work belongs in a subagent.
 
 ## Usage
 

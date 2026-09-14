@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.19.0] - 2026-09-14
+
+### Changed
+
+- **The release skill runs in the session instead of a subagent** (`release`, `model-tiers`, datum-platform). A release ends in a pushed tag and a published Release, which needs the user's approval, and a subagent cannot receive it. The fork therefore handed the release back at its final step and threw away everything it had learned. One release spent 165,386 subagent tokens across two runs and published nothing, the second run using zero tool calls to decide it had to refuse; the same release then took four tool calls in the session. Every check the skill performs is unchanged. `model-tiers` gains the general rule: a task whose last action needs a person to say yes does not belong in a subagent, and advisory work such as the two pull request reviewers still does.
+
 ## [1.18.0] - 2026-09-13
 
 ### Added
