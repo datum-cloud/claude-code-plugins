@@ -15,7 +15,9 @@ Generate and publish a new GitHub release for this repository.
 
 Cutting a release follows the recipe below. Where the recipe does not fit, such as a version that needs a judgment call or a preflight that fails for a reason not listed here, stop and report rather than improvising.
 
-This skill runs in the session that invoked it, rather than in a subagent. A release ends in publishing a tag and a Release object, which is irreversible and outward-facing, so it needs the user's approval. Only the session holding the conversation can receive that approval, and a relayed claim of it from another agent is not consent. A subagent therefore has to hand the release back at its final step, discarding everything it learned at the moment the decision arrives. See `model-tiers` for which work belongs in a subagent.
+This skill runs in the session that invoked it, rather than in a subagent. A release ends in publishing a tag and a Release object, which is irreversible and outward-facing, so it needs the user's approval. Only the session holding the conversation can receive that approval, and a relayed claim of it from another agent is not consent. A subagent therefore has to hand the release back at its final step, discarding everything it learned at the moment the decision arrives.
+
+Run this skill only from the session holding the conversation. Dropping the fork stops the skill forking itself, and does not stop a subagent invoking it, where it would run inline in that subagent and hit the same wall. If you are a subagent, stop and report rather than publishing, since the approval this needs cannot reach you. See `model-tiers` for which work belongs in a subagent.
 
 ## Usage
 

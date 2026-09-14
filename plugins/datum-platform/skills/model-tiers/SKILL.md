@@ -108,6 +108,8 @@ So a task whose final step needs that approval must not run in a subagent. It wi
 
 Apply the test before choosing a subagent. Ask whether the agent can finish the job alone. If its last action needs a person to say yes, run the work in the session instead.
 
+Removing a fork from a skill is half the guard. It stops the skill forking itself, and leaves a subagent free to invoke it, where it runs inline in that subagent and meets the same wall. So say in the skill that it runs only from the session holding the conversation, and that a subagent reaching its final step stops and reports rather than acting.
+
 Advisory work is the opposite case and belongs in a subagent. The two pull request reviewers return verdicts the session acts on, so nothing they produce waits on approval, and running them in parallel costs one review's wall time rather than two.
 
 ## Nesting
