@@ -46,6 +46,16 @@ gh api repos/{owner}/{repo}/issues/<parent>/sub_issues -F sub_issue_id=<database
 
 `-F` sends the integer the endpoint wants. An issue has one parent, so reparenting means removing the old link first.
 
+Check for an existing parent before the add, and check it with GraphQL. The REST issue object has no `parent` field, so `--jq .parent` reads null for every issue, parented or not, and an add trusting it can move a child out of a tree nobody asked you to touch. If the child already has a parent the brief does not name, stop on that action.
+
+```
+gh api graphql -f query='{repository(owner:"<owner>",name:"<repo>"){issue(number:<n>){parent{number}}}}'
+```
+
+**Close a duplicate.** `gh issue close <n> --duplicate-of <m>`, which links the two for anyone who lands on the closed one.
+
+**One write per command.** Run each `gh` write as its own Bash call, never in a loop. A refused or failed write then stops that action alone, and the report can name which one it was.
+
 ## Rules the Bodies Follow
 
 - **Write the file in its own command, post it in the next one.** The `pr-op-gate` hook reads the body file from disk before the command runs, so a heredoc and a `gh` call joined in one command hand the gate the previous contents of that path and post something nobody measured. Two commands, always.

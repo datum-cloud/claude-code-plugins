@@ -149,6 +149,19 @@ or what changes, rather than what is absent.
 know what the post is about. A title that only makes sense once you have read
 the first paragraph is a title that failed.
 
+**Write an issue title as a headline.** A subject and a verb, three to six
+words, no clause hanging off the end. The explanation belongs in the summary,
+where there is room for it. An epic title follows the same rule, since it sits
+in a list of epics and has to be told apart at a glance.
+
+> ❌ Live systems carry configuration that Git does not
+>
+> ✅ Live systems drift from Git
+
+> ❌ Edge clusters without a committed template lose anything it omits
+>
+> ✅ Edge sync deletes untemplated pools
+
 **Say the outcome, not the mechanism.** `pr-conventions` carries the format:
 the conventional prefix, imperative mood, and the 72-character limit.
 
