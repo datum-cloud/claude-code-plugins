@@ -15,6 +15,7 @@ Notable changes to the Datum Cloud Claude Code plugins.
 ### Fixed
 
 - **The gate no longer crashes under mawk** on a body carrying an inline API path such as `/v1beta2`, which refused the post as unmeasurable.
+- **The gate measures posts again on bash 3.2**, the default on macOS. Reading a captured body used a nested expansion that older bash cannot parse, so every measurement failed and the post was allowed through unchecked. This one failed open rather than refusing, so a body carrying an em dash or an over-long summary reached GitHub.
 
 ## [1.19.0] - 2026-09-14
 

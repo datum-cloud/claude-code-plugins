@@ -753,10 +753,11 @@ segment_tokens() {
 }
 
 tok_text() {
-  local v
+  local v off
   v=$(cat "${TK_FILE[$1]}"; printf x)
   v="${v%x}"
-  printf '%s' "${v:${2:-0}}"
+  off=${2:-0}
+  printf '%s' "${v:$off}"
 }
 
 F_NAME=()
