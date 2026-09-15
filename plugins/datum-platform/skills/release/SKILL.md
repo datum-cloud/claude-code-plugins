@@ -229,20 +229,20 @@ consumers must update: imports, image refs, install paths, CRD migrations, etc.}
 
 ## What's new
 
-- **{Feature title}** — {one-sentence description}. ({PR link(s)})
-- **{Fix title}** — {one-sentence description}. ({PR link(s)})
+- **{Feature title}.** {One-sentence description}. ({PR link(s)})
+- **{Fix title}.** {One-sentence description}. ({PR link(s)})
 
 {Optional: > [!NOTE] block for schema/compatibility or upgrade notes}
 ```
 
 **Style rules:**
-- Each bullet leads with a **bold short title** followed by an em-dash (`—`), then a single sentence.
+- Each bullet leads with a **bold short title** ending in a period, then a single sentence.
 - Link every bullet to the PR(s) that delivered it: `([#N](url))`.
 - Breaking changes go in a `> [!IMPORTANT]` callout above `## What's new`.
 - Upgrade / compatibility notes go in a `> [!NOTE]` callout after `## What's new`.
 - For CRD-based projects with no schema changes, add: `> No schema changes. Existing resources keep working without any conversion.`
 - Omit routine dependency bumps unless the upgrade is significant (e.g., a major version of a core dependency).
-- Release title format: `vX.Y.Z — {Short theme}` (em-dash, not a hyphen; omit if there is no clear theme).
+- Release title format: `vX.Y.Z: {Short theme}`. The title always starts with the tag, and is the tag alone when there is no clear theme. Readers scan the releases page by version, and a title without one leaves them opening each release to find it.
 
 ### Step 7 — Confirm before publishing
 
@@ -259,7 +259,7 @@ Ask for confirmation before running `gh release create`.
 
 ```bash
 gh release create <tag> \
-  --title "<tag> — <Short theme>" \
+  --title "<tag>: <Short theme>" \
   --notes "$(cat <<'EOF'
 <release notes body>
 EOF
@@ -281,7 +281,7 @@ PRs since v0.6.0: 4 merged
 Project type: CRD-based operator  |  aggregated API server  |  plain service
 Schema changes: none  |  <list of changed resources>
 
-Proposed release title: v0.7.0 — Webhook high availability
+Proposed release title: v0.7.0: Webhook high availability
 
 Release notes:
 ---

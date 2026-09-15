@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.20.1] - 2026-09-15
+
+### Fixed
+
+- **Release titles keep their version** (`release`, datum-platform). The skill asked for `vX.Y.Z — theme` and for an em dash in every notes bullet, while the writing rules ban the em dash. Sessions dropped the dash and the version went with it, so six datum-cloud/infra releases, v0.83.62 to v0.83.67, carry a theme with no version. Titles are now `vX.Y.Z: theme`, or the tag alone, and bullets lead with a bold title ending in a period.
+
 ## [1.20.0] - 2026-09-14
 
 ### Added
