@@ -2,6 +2,13 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [galactic-networking 1.0.0] - 2026-09-30
+
+### Added
+
+- **New plugin: `galactic-networking`.** Knowledge for Galactic, the SRv6 VPC dataplane, kept apart from the platform-engineering plugin.
+- **VPC ingress sidecar reference** (`galactic-vpc-ingress-sidecar`). Explains how Envoy reaches an IPv6 VPC backend through the `galactic-vrf` sidecar, in both directions: identifiers and SID layout, eBPF maps and programs, control-plane sequences, forward and return paths, and deployment settings. Includes a troubleshooting guide for 503 `UF` toward VPC pods, with a hop-by-hop checklist, symptom playbooks, a `drop_reasons` counter table, a log dictionary, and a repair ladder that separates reads from mutations.
+
 ## [1.20.1] - 2026-09-15
 
 ### Fixed

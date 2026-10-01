@@ -1,0 +1,22 @@
+{
+  "name": "galactic-networking",
+  "description": "Reference and troubleshooting knowledge for Galactic, Datum Cloud's SRv6 VPC dataplane: sidecar, eBPF maps, EVPN return paths, and ingress debugging",
+  "version": "1.0.0",
+  "author": {
+    "name": "Datum Cloud",
+    "url": "https://github.com/datum-cloud"
+  },
+  "repository": "https://github.com/datum-cloud/claude-code-plugins",
+  "license": "AGPL-3.0",
+  "keywords": [
+    "galactic",
+    "srv6",
+    "usid",
+    "ebpf",
+    "evpn",
+    "vrf",
+    "envoy",
+    "networking",
+    "troubleshooting"
+  ]
+}

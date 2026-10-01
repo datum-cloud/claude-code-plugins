@@ -9,6 +9,7 @@ A marketplace for Claude Code plugins providing platform engineering tools and a
 | [datum-platform](./plugins/datum-platform/) | Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment | 1.20.1 |
 | [datum-gtm](./plugins/datum-gtm/) | Go-to-market automation with commercial strategy, product discovery, and customer support | 1.1.1 |
 | [milo-activity](./plugins/milo-activity/) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.0.0 |
+| [galactic-networking](./plugins/galactic-networking/) | Reference and troubleshooting knowledge for Galactic, the SRv6 VPC dataplane: sidecar, eBPF maps, EVPN return paths, and ingress debugging | 1.0.0 |
 
 ## Installation
 
@@ -63,6 +64,7 @@ Once the marketplace is added, install plugins by name:
 /plugin install datum-platform@datum-claude-code-plugins
 /plugin install datum-gtm@datum-claude-code-plugins
 /plugin install milo-activity@datum-claude-code-plugins
+/plugin install galactic-networking@datum-claude-code-plugins
 ```
 
 > [!IMPORTANT]
@@ -138,6 +140,10 @@ claude-code-plugins/
 │   │   ├── agents/             # Specialized agents
 │   │   ├── skills/             # Knowledge modules
 │   │   └── commands/           # Slash commands
+│   ├── galactic-networking/    # Galactic SRv6 dataplane plugin
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json     # Plugin manifest
+│   │   └── skills/             # Knowledge modules
 │   └── milo-activity/          # Activity service plugin
 │       ├── .claude-plugin/
 │       │   └── plugin.json     # Plugin manifest
@@ -191,6 +197,16 @@ Query audit logs, investigate incidents, and author ActivityPolicies using the M
 
 **Category:** Observability
 **Tags:** kubernetes, audit, activity, incident, observability, milo, cel
+
+### galactic-networking
+
+Reference and troubleshooting knowledge for Galactic, Datum Cloud's SRv6 VPC dataplane. Knowledge only: no agents, commands or hooks.
+
+**Features:**
+- `galactic-vpc-ingress-sidecar`: how Envoy reaches IPv6 VPC backends through the `galactic-vrf` sidecar in both directions, with identifiers, eBPF maps, control-plane sequences, and a hop-by-hop 503 troubleshooting guide
+
+**Category:** Networking
+**Tags:** galactic, srv6, ebpf, evpn, vrf, envoy, troubleshooting
 
 ## Contributing
 
