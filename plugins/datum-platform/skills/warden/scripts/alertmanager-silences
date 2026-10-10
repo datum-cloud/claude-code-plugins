@@ -3,8 +3,7 @@ set -euo pipefail
 
 NAMESPACE="${NAMESPACE:-telemetry-system}"
 SERVICE="${SERVICE:-vmalertmanager-service-alerting}"
-LOCAL_PORT="${LOCAL_PORT:-19093}"
-BASE_URL="http://127.0.0.1:$LOCAL_PORT"
+BASE_URL=""
 MAX_SECONDS=$((72 * 3600))
 SCOPE_LABELS="cluster namespace instance"
 
@@ -45,7 +44,10 @@ because either can widen a silence past the one alert it was approved for.
 
   NAMESPACE   defaults to telemetry-system
   SERVICE     defaults to vmalertmanager-service-alerting
-  LOCAL_PORT  defaults to 19093
+
+The local port is one the kernel assigns to this run's own port-forward, read
+from kubectl's output, so a forward another session left running cannot
+answer in its place.
 USAGE
   exit 2
 }
@@ -81,21 +83,26 @@ duration_seconds() {
 start_port_forward() {
   PORT_FORWARD_LOG=$(mktemp)
   kubectl --context "$CONTEXT" port-forward -n "$NAMESPACE" "svc/$SERVICE" \
-    "$LOCAL_PORT:9093" >"$PORT_FORWARD_LOG" 2>&1 &
+    --address 127.0.0.1 ":9093" >"$PORT_FORWARD_LOG" 2>&1 &
   PORT_FORWARD_PID=$!
 
-  local attempt
+  local attempt port
   for attempt in $(seq 1 30); do
-    if curl -sf "$BASE_URL/-/healthy" >/dev/null 2>&1; then
-      return 0
-    fi
     if ! kill -0 "$PORT_FORWARD_PID" 2>/dev/null; then
       break
+    fi
+    port=$(sed -n 's/^Forwarding from 127\.0\.0\.1:\([0-9][0-9]*\) -> 9093$/\1/p' \
+      "$PORT_FORWARD_LOG" | head -n 1)
+    if [[ -n "$port" ]]; then
+      BASE_URL="http://127.0.0.1:$port"
+      if curl -sf "$BASE_URL/-/healthy" >/dev/null 2>&1; then
+        return 0
+      fi
     fi
     sleep 1
   done
 
-  echo "ERROR: $SERVICE in $NAMESPACE on context $CONTEXT did not answer on $BASE_URL" >&2
+  echo "ERROR: $SERVICE in $NAMESPACE on context $CONTEXT did not answer through this run's port-forward" >&2
   sed 's/^/  kubectl: /' "$PORT_FORWARD_LOG" >&2
   exit 1
 }

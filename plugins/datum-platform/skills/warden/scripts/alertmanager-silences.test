@@ -17,12 +17,21 @@ mkdir -p "$stub_dir"
 cat >"${stub_dir}/kubectl" <<'EOF'
 #!/usr/bin/env bash
 case "$*" in
-*port-forward*) exec sleep 30 ;;
+*port-forward*)
+  if [[ "${FORWARD:-ours}" == foreign ]]; then
+    echo "Unable to listen on any of the requested ports" >&2
+    exit 1
+  fi
+  [[ "$*" == *"--address 127.0.0.1 :9093"* ]] || exit 1
+  echo "Forwarding from 127.0.0.1:54321 -> 9093"
+  exec sleep 30
+  ;;
 esac
 EOF
 
 cat >"${stub_dir}/curl" <<EOF
 #!/usr/bin/env bash
+echo "\$*" >>"${tmp}/curl-calls"
 case "\$*" in
 *"-X POST"*)
   cat >"${tmp}/posted"
@@ -36,7 +45,7 @@ EOF
 chmod +x "${stub_dir}/kubectl" "${stub_dir}/curl"
 
 run() {
-  PATH="${stub_dir}:${PATH}" CONTEXT=test LOCAL_PORT=1 "$script" "$@"
+  PATH="${stub_dir}:${PATH}" CONTEXT=test "$script" "$@"
 }
 
 refuses() { # name  stderr-fragment  args...
@@ -100,7 +109,7 @@ check "propose comment names the issue" yes \
   "$(jq -r --arg i "$issue" 'if (.comment | contains($i)) then "yes" else "no" end' <<<"$proposal")"
 check "propose writes nothing" no "$([[ -f "${tmp}/posted" ]] && echo yes || echo no)"
 
-unset_ctx_out=$(PATH="${stub_dir}:${PATH}" CONTEXT='' LOCAL_PORT=1 "$script" create "${ok[@]}" 2>&1)
+unset_ctx_out=$(PATH="${stub_dir}:${PATH}" CONTEXT='' "$script" create "${ok[@]}" 2>&1)
 check "create refuses an empty CONTEXT" 1 "$(grep -c 'set CONTEXT' <<<"$unset_ctx_out")"
 
 echo '[]' >"${tmp}/served"
@@ -121,6 +130,21 @@ listed=$(run list 2>/dev/null)
 check "list prints matchers" \
   "s1	alertname=FooDown,cluster=prod-infrastructure-control-plane	2099-01-01T00:00:00Z	bob	x" \
   "$listed"
+
+check "every call goes through this run's forwarded port" 0 \
+  "$(grep -vc '127.0.0.1:54321/' "${tmp}/curl-calls")"
+
+# Another session's forward answers healthy on every port, and this run's own
+# forward fails to bind. The script must refuse rather than write through it.
+echo '[]' >"${tmp}/served"
+rm -f "${tmp}/posted"
+foreign_out=$(FORWARD=foreign run create "${ok[@]}" 2>&1)
+check "foreign listener refuses create" 1 "$?"
+check "foreign listener names the cause" 1 \
+  "$(grep -c "did not answer through this run's port-forward" <<<"$foreign_out")"
+check "foreign listener writes nothing" no "$([[ -f "${tmp}/posted" ]] && echo yes || echo no)"
+FORWARD=foreign run list >/dev/null 2>&1
+check "foreign listener refuses list" 1 "$?"
 
 echo "${pass} passed, ${fail} failed"
 [[ "$pass" -gt 0 && "$fail" -eq 0 ]]
