@@ -2,7 +2,7 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
-## [galactic-networking removed] - 2026-10-10
+## [galactic-networking 1.0.0 removed] - 2026-10-10
 
 ### Removed
 
