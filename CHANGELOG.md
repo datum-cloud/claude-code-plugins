@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [galactic-networking removed] - 2026-10-10
+
+### Removed
+
+- **`galactic-networking` plugin.** Its only skill, `galactic-vpc-ingress-sidecar`, now lives in the galactic repo as a project skill (`.claude/skills/galactic-vpc-ingress-sidecar/`), next to the code it describes. It loads automatically in any session started inside a galactic checkout. Uninstall the plugin with `/plugin uninstall galactic-networking@datum-claude-code-plugins`.
+
 ## [galactic-networking 1.0.0] - 2026-09-30
 
 ### Added
