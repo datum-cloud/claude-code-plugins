@@ -42,18 +42,6 @@
       "source": "./plugins/milo-activity",
       "category": "observability",
       "homepage": "https://github.com/datum-cloud/activity"
-    },
-    {
-      "name": "galactic-networking",
-      "description": "Reference and troubleshooting knowledge for Galactic, Datum Cloud's SRv6 VPC dataplane: sidecar, eBPF maps, EVPN return paths, and ingress debugging",
-      "version": "1.0.0",
-      "author": {
-        "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
-      },
-      "source": "./plugins/galactic-networking",
-      "category": "networking",
-      "homepage": "https://github.com/datum-cloud/galactic"
     }
   ]
 }
