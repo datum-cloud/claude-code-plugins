@@ -2,6 +2,13 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.21.0] - 2026-10-10
+
+### Added
+
+- **Production patrol** (`warden`, datum-platform). The patrol that walks production on a loop now ships with the plugin, so a session in any Datum repository can run it, not only one inside datum-cloud/infra. It works an on-call shift the way the rotation does: it reads recent on-call log comments and open incidents before its first pass, keeps one shift comment on the week's log, files an untracked alert as a monitoring issue after a duplicate check, sends rule hygiene to the rule's owner, and drafts a suspected incident from the incident template with a UTC timeline before stopping for a person to declare it.
+- **Silences read and proposed** (`warden`, datum-platform). Every pass reads the active silence list and reports firing apart from firing-but-silenced, warns about a silence expiring inside the next shift, and names a silence whose tracking issue has closed. For a tracked fire nobody on shift can act on, the patrol proposes a silence and writes it only after a person approves it in the session. Its script refuses any silence that is not one alert, pinned to a cluster, namespace or instance with exact matchers, linked to a tracking issue, and at most 72 hours long. The patrol never silences an alert raised by a site sync, never expires a silence, and closes only issues it filed.
+
 ## [galactic-networking 1.0.0 removed] - 2026-10-10
 
 ### Removed
