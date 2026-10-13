@@ -6,7 +6,7 @@ A marketplace for Claude Code plugins providing platform engineering tools and a
 
 | Plugin | Description | Version |
 |--------|-------------|---------|
-| [datum-platform](./plugins/datum-platform/) | Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment | 1.20.1 |
+| [datum-platform](./plugins/datum-platform/) | Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment | 1.21.0 |
 | [datum-gtm](./plugins/datum-gtm/) | Go-to-market automation with commercial strategy, product discovery, and customer support | 1.1.1 |
 | [milo-activity](./plugins/milo-activity/) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.0.0 |
 
@@ -154,7 +154,7 @@ Kubernetes platform engineering automation with aggregated API servers, controll
 
 **Features:**
 - 11 specialized agents (plan, api-dev, frontend-dev, sre, test-engineer, code-reviewer, tech-writer, operational-reviewer, pr-adversary, pr-conventions-reviewer, pr-review-fixer)
-- 34 skill modules covering Kubernetes patterns, Go conventions, clear writing, deployment workflows, and more
+- 35 skill modules covering Kubernetes patterns, Go conventions, clear writing, deployment workflows, the production patrol, and more
 - Pipeline orchestration for structured feature development
 - Automatic learning engine for pattern extraction
 - A model tier per agent, matched to the design risk of its work rather than to its importance, with an escalation path when a cheaper agent meets a decision above its tier
