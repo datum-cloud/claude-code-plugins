@@ -222,12 +222,12 @@ lists, so the merged-PR list in Step 3 misses them. When the repo ships an execu
 `bin/release-image-updates`, run it from the last tag to the release commit:
 
 ```bash
-test -x bin/release-image-updates && bin/release-image-updates <last-tag> <release-commit>
+if [ -x bin/release-image-updates ]; then bin/release-image-updates <last-tag> <release-commit>; fi
 ```
 
-- Exit non-zero: **stop** and report the script's output. Do not draft notes without the table.
+- Exit non-zero: **stop** and report the script's output, which names the commit or revision it could not read. Do not draft notes without the table.
 - It prints a markdown table: put it, unedited, under an `## Image updates` heading after `## What's new`.
-- It prints a "no updates" line: omit the heading.
+- It prints a line starting `No production image updates`: omit the heading.
 - No such script, or it is not executable: skip this step.
 
 Examine the last 2–3 releases with `gh release view <tag>` to match the established style and tone of this repository before writing new notes.
