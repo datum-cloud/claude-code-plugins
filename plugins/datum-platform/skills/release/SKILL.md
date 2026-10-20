@@ -217,6 +217,19 @@ git diff -- NOTICE NOTICE.md NOTICE.txt THIRD_PARTY_NOTICES*
 
 ### Step 6 — Draft release notes
 
+**Image updates.** Some repositories deploy images that a bot bumps in commits no PR
+lists, so the merged-PR list in Step 3 misses them. When the repo ships an executable
+`bin/release-image-updates`, run it from the last tag to the release commit:
+
+```bash
+if [ -x bin/release-image-updates ]; then bin/release-image-updates <last-tag> <release-commit>; fi
+```
+
+- Exit non-zero: **stop** and report the script's output, which names the commit or revision it could not read. Do not draft notes without the table.
+- It prints a markdown table: put it, unedited, under an `## Image updates` heading after `## What's new`.
+- It prints a line starting `No production image updates`: omit the heading.
+- No such script, or it is not executable: skip this step.
+
 Examine the last 2–3 releases with `gh release view <tag>` to match the established style and tone of this repository before writing new notes.
 
 **Structure:**
@@ -233,6 +246,8 @@ consumers must update: imports, image refs, install paths, CRD migrations, etc.}
 - **{Fix title}.** {One-sentence description}. ({PR link(s)})
 
 {Optional: > [!NOTE] block for schema/compatibility or upgrade notes}
+
+{Optional: ## Image updates, the table from bin/release-image-updates}
 ```
 
 **Style rules:**

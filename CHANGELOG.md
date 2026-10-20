@@ -2,6 +2,16 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.22.0] - 2026-10-20
+
+### Added
+
+- **Image updates in release notes** (`release`, datum-platform). When a repository ships an executable `bin/release-image-updates`, the release skill runs it from the last tag to the release commit and puts its table of bot-written image versions under an Image updates heading, so a version that reached production without a pull request shows in the notes. The heading is left out when the script reports no updates, and a failing script stops the release before any notes are drafted.
+
+### Changed
+
+- **One reviewer for a promotion** (`pr-review-loop`, datum-platform). A pull request that promotes a change already running in staging to a shared base or a production overlay now gets the conventions reviewer alone, instead of both. It qualifies only when its body links the staging change, staging is Ready on it, and staging renders unchanged. The reviewer also confirms every patch target exists in the release production runs. Alert rule promotions keep both reviewers. The single review stays advisory: its findings go to a person before any fix or ready.
+
 ## [1.21.0] - 2026-10-10
 
 ### Added
