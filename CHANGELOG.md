@@ -1,12 +1,12 @@
 # Changelog
 
 Notable changes to the Datum Cloud Claude Code plugins.
-## [1.21.1] - 2026-10-20
+
+## [1.22.0] - 2026-10-20
 
 ### Changed
 
-- **One reviewer for a promotion** (`pr-review-loop`, datum-platform). A pull request that promotes config already soaked in staging to a shared base or a production overlay now gets the conventions reviewer alone, instead of both. The change already ran in staging, so what remains to check is its reach and its Flux render. The single review stays advisory: its findings go to a person before any fix or ready.
-
+- **One reviewer for a promotion** (`pr-review-loop`, datum-platform). A pull request that promotes a change already running in staging to a shared base or a production overlay now gets the conventions reviewer alone, instead of both. It qualifies only when its body links the staging change, staging is Ready on it, and staging renders unchanged. The reviewer also confirms every patch target exists in the release production runs. Alert rule promotions keep both reviewers. The single review stays advisory: its findings go to a person before any fix or ready.
 
 ## [1.21.0] - 2026-10-10
 
