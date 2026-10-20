@@ -31,7 +31,8 @@ Each reviewer costs roughly 100k to 160k tokens and the pair plus the fixer adds
 
 - **Nothing deployable changed.** A diff confined to Markdown, a changelog, or comments gets `pr-conventions-reviewer` alone.
 - **Trivial diff.** Under about twenty changed lines in a single file gets one reviewer: `pr-adversary` when the file deploys, `pr-conventions-reviewer` when it does not.
-- **Never skip on reach.** Any diff that touches a shared base, a production overlay, a cluster overlay that tracks trunk, or an alert rule gets both reviewers regardless of size. Blast radius decides, not diff size.
+- **Promotion.** A PR that moves config already soaked in staging into a shared base or a production overlay, with staging rendering unchanged, gets `pr-conventions-reviewer` alone. The change already ran once, so what remains is where it reaches and how Flux renders it.
+- **Never skip on reach.** Any diff that touches a shared base, a production overlay, a cluster overlay that tracks trunk, or an alert rule gets both reviewers regardless of size, except a promotion. Blast radius decides, not diff size.
 - **Run in the background.** Keep working while the reviews run and pick them up when they land. Both reviewer agents carry `background: true`.
 
 When one reviewer is skipped, the agreement conditions in `${CLAUDE_PLUGIN_ROOT}/skills/pr-review-loop/protocol.md` cannot all hold, because they need two finished reports. A single-reviewer run is advisory: report its findings and verdict to the user and do not spawn the fixer without their say.
