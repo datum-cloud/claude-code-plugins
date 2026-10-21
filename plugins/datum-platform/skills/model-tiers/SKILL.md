@@ -82,8 +82,8 @@ Where a tier cannot meet the bar for some task, move that task up a tier. Never 
 | `plan` | opus | writes the design brief other agents execute |
 | `api-dev` | opus | authors API types, storage, and controllers |
 | `frontend-dev` | opus | authors the interface a user meets |
-| `sre` | opus | authors manifests, CI, and deployment config whose blast radius is a cluster |
 | `/evolve` | opus | promotes findings into runbooks that steer every later agent |
+| `sre` | sonnet | writes manifests, CI, and deployment config to a brief, and stops at a design decision |
 | `code-reviewer` | sonnet | reviews a diff that exists against conventions that exist |
 | `pr-adversary` | sonnet | the same, from the correctness angle, against a brief in its definition |
 | `pr-conventions-reviewer` | sonnet | the same, from the reach and conventions angle |

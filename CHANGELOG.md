@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [1.22.0] - 2026-10-21
+
+### Changed
+
+- **The SRE agent runs on Sonnet** (`sre`, `model-tiers`, datum-platform). Most SRE work is a manifest, overlay, or CI change carried out to a brief, and it paid Opus rates for it. The agent now stops and reports when the work turns on a design decision, the same rule `tech-writer` and `test-engineer` follow, so the session can hand that part to Opus. The two pull request reviewers and every gate apply unchanged.
+
 ## [1.21.0] - 2026-10-10
 
 ### Added
