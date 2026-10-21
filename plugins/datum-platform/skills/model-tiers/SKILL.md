@@ -22,7 +22,7 @@ Work that authors a change carrying design risk:
 
 - writing a pull request from an issue
 - designing an alert rule, a metric join, or a query
-- Pulumi programs, controllers, API types, anything that ships behavior
+- Pulumi programs, controllers, API types, new behavior no brief specifies
 - planning briefs that other agents then execute
 
 The signal: getting it wrong means someone reworks the approach rather than fixes a line. That costs a review round or a bad release, which is more than the model saved.
@@ -36,6 +36,7 @@ Bounded work against an explicit brief:
 - a rebase whose conflict shape is known
 - mechanical renames
 - cutting a release from a recipe
+- manifest, overlay, and CI changes carried out to a brief
 - rewriting a body, ticking a checkbox, posting a bookkeeping comment
 - drift checks and gate runs
 
