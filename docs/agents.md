@@ -39,7 +39,7 @@ flowchart LR
 
 ## Model Tiers
 
-Each agent pins a model matched to its task's design risk, not to the task's importance. Authoring a change carries design risk, because a wrong approach costs a review round or a bad release, so `plan`, `api-dev`, `frontend-dev`, and `sre` run on opus. Reviewing, fixing agreed findings, writing to a brief, and cutting a release from a recipe are bounded by criteria that already exist, so those agents run on sonnet. Lookups and monitors run on haiku, spawned ad hoc rather than pinned.
+Each agent pins a model matched to its task's design risk, not to the task's importance. Authoring a change carries design risk, because a wrong approach costs a review round or a bad release, so `plan`, `api-dev`, and `frontend-dev` run on opus. Reviewing, fixing agreed findings, writing to a brief, carrying out infrastructure changes to a brief, and cutting a release from a recipe are bounded by criteria that already exist, so those agents run on sonnet. Lookups and monitors run on haiku, spawned ad hoc rather than pinned.
 
 An agent that meets a decision above its tier stops and reports it instead of deciding, and the orchestrator escalates. The model is a cost choice and never an acceptance bar: the same gates apply whatever raised a finding.
 

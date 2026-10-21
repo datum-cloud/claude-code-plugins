@@ -22,7 +22,7 @@ Work that authors a change carrying design risk:
 
 - writing a pull request from an issue
 - designing an alert rule, a metric join, or a query
-- Pulumi programs, controllers, API types, anything that ships behavior
+- Pulumi programs, controllers, API types, new behavior no brief specifies
 - planning briefs that other agents then execute
 
 The signal: getting it wrong means someone reworks the approach rather than fixes a line. That costs a review round or a bad release, which is more than the model saved.
@@ -36,6 +36,7 @@ Bounded work against an explicit brief:
 - a rebase whose conflict shape is known
 - mechanical renames
 - cutting a release from a recipe
+- manifest, overlay, and CI changes carried out to a brief
 - rewriting a body, ticking a checkbox, posting a bookkeeping comment
 - drift checks and gate runs
 
@@ -82,8 +83,8 @@ Where a tier cannot meet the bar for some task, move that task up a tier. Never 
 | `plan` | opus | writes the design brief other agents execute |
 | `api-dev` | opus | authors API types, storage, and controllers |
 | `frontend-dev` | opus | authors the interface a user meets |
-| `sre` | opus | authors manifests, CI, and deployment config whose blast radius is a cluster |
 | `/evolve` | opus | promotes findings into runbooks that steer every later agent |
+| `sre` | sonnet | writes manifests, CI, and deployment config to a brief, and stops at a design decision |
 | `code-reviewer` | sonnet | reviews a diff that exists against conventions that exist |
 | `pr-adversary` | sonnet | the same, from the correctness angle, against a brief in its definition |
 | `pr-conventions-reviewer` | sonnet | the same, from the reach and conventions angle |
