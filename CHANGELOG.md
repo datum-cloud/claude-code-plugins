@@ -14,6 +14,12 @@ Notable changes to the Datum Cloud Claude Code plugins.
 
 - **`datum-cloud` base plugin listed here.** Install it from this marketplace to connect Claude to your Datum Cloud projects: it starts the Datum MCP server and the hosted Datum Docs MCP server for you, and adds skills to sign in and pick a project, set up a service account for CI and GitHub Actions, and know when to hand a question to Patch. Its source stays in datum-cloud/skills.
 
+## [milo-activity 1.1.1] - 2026-10-29
+
+### Changed
+
+- **`milo-activity` now ships from the Activity repo.** The plugin moved to milo-os/activity, next to the service it describes, so its skills and agents change alongside Activity itself. Installs and skill names are unchanged; update the marketplace to pick up 1.1.1.
+
 ## [milo-observe 0.1.0] - 2026-10-29
 
 ### Added
