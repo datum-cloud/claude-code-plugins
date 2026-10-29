@@ -9,6 +9,7 @@ Claude the agents and skills to work with that product.
 | Plugin | What it does | Version |
 |--------|--------------|---------|
 | [datum-cloud](https://github.com/datum-cloud/skills) | Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server | 1.1.0 |
+| [datum-compute](https://github.com/datum-cloud/compute/tree/main/claude-plugin) | Deploy containers to Datum Cloud Compute, put them on a public URL, operate them, and find out why a workload isn't running | 0.1.0 |
 | [datum-networking](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) | Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks | 0.1.0 |
 | [milo-activity](https://github.com/milo-os/activity/tree/main/claude-plugin) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.1.1 |
 | [milo-observe](https://github.com/milo-os/telemetry/tree/main/claude-plugin) | Query project logs, export metrics to Grafana Cloud, and read the status metrics Datum publishes for your resources | 0.1.0 |
@@ -60,6 +61,25 @@ server so Claude answers from the current documentation.
 **Prerequisites:** install `datumctl` and `datum-mcp`
 (`brew install datum-cloud/tap/datumctl datum-cloud/tap/datum-mcp`). The
 plugin's source lives in [datum-cloud/skills](https://github.com/datum-cloud/skills).
+
+### datum-compute
+
+Deploy and run containers on Datum Cloud Compute. Claude can build an image
+from your Dockerfile, deploy it behind a public HTTPS URL, scale, restart and
+update it, and work out why a workload isn't running and whether the fix is
+yours or Datum's.
+
+- 2 skills for deploying a container and operating a workload with
+  `datumctl compute`
+- 8 skills carrying compute's own triage procedures: workload not available,
+  instances not ready, quota, ConfigMaps and Secrets, placement, stalled
+  rollouts, creating a workload from a manifest, and checking inside an
+  instance
+
+**Prerequisites:** `datum-mcp` and `datumctl` with its compute plugin on your
+PATH. Installing it also installs the `datum-cloud` plugin, which runs
+datum-mcp; the skills load its compute tools when they need them. Source lives in
+[datum-cloud/compute](https://github.com/datum-cloud/compute/tree/main/claude-plugin).
 
 ### datum-networking
 
