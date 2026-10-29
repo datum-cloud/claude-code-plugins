@@ -14,9 +14,14 @@
         "name": "Datum Cloud",
         "email": "engineering@datumcloud.io"
       },
-      "source": "./plugins/milo-activity",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/milo-os/activity.git",
+        "path": "claude-plugin",
+        "sha": "ea9e30ef4af1d0040e179cbb7a1ed6cdd5a63726"
+      },
       "category": "observability",
-      "homepage": "https://github.com/datum-cloud/activity"
+      "homepage": "https://github.com/milo-os/activity"
     },
     {
       "name": "milo-observe",

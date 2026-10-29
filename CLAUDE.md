@@ -11,7 +11,7 @@ Plugins for people building and running Datum Cloud (platform engineering,
 go-to-market) do not belong here. They live in the internal marketplace in
 datum-cloud/infra.
 
-- **milo-activity**: query audit logs, investigate incidents, and author ActivityPolicies
+- **milo-activity** (from milo-os/activity): query audit logs, investigate incidents, and author ActivityPolicies
 - **milo-observe** (from milo-os/telemetry): query logs, export metrics, and read resource status metrics
 
 ## Validation Commands
@@ -30,13 +30,8 @@ to check a new entry.
 ```
 .claude-plugin/
   marketplace.json          # Marketplace catalog listing plugins
-
-plugins/
-  milo-activity/
-    .claude-plugin/
-      plugin.json           # Plugin manifest
-    agents/
-    skills/
+                            # (milo-activity is listed from milo-os/activity,
+                            # milo-observe from milo-os/telemetry)
 
 claude-desktop/             # datumctl sign-in helper for Claude Desktop
 ```

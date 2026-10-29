@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [milo-activity 1.1.0] - 2026-10-29
+
+### Changed
+
+- **`milo-activity` now ships from the Activity repo.** The plugin moved to milo-os/activity, next to the service it describes, so its skills and agents change alongside Activity itself. Installs and skill names are unchanged; update the marketplace to pick up 1.1.0.
+
 ## [milo-observe 0.1.0] - 2026-10-29
 
 ### Added
