@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [datum-networking 0.1.0] - 2026-10-29
+
+### Added
+
+- **`datum-networking` plugin.** Create a Datum Cloud load balancer and find out why one isn't serving, from Claude Code, with the same diagnosis and procedures Datum's own assistant uses. It covers hostnames, domain verification, DNS delegation, certificates, unreachable origins, the WAF and access logs, plus networks and network services, and adds a read-only `site-triage` agent. It installs the `datum-cloud` base plugin, which runs datum-mcp; install datum-mcp first.
+
 ## [datum-cloud 1.1.0] - 2026-10-29
 
 ### Added

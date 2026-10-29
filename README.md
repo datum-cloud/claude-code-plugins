@@ -9,6 +9,7 @@ Claude the agents and skills to work with that product.
 | Plugin | What it does | Version |
 |--------|--------------|---------|
 | [datum-cloud](https://github.com/datum-cloud/skills) | Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server | 1.1.0 |
+| [datum-networking](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) | Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks | 0.1.0 |
 | [milo-activity](https://github.com/milo-os/activity/tree/main/claude-plugin) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.1.1 |
 | [milo-observe](https://github.com/milo-os/telemetry/tree/main/claude-plugin) | Query project logs, export metrics to Grafana Cloud, and read the status metrics Datum publishes for your resources | 0.1.0 |
 
@@ -59,6 +60,22 @@ server so Claude answers from the current documentation.
 **Prerequisites:** install `datumctl` and `datum-mcp`
 (`brew install datum-cloud/tap/datumctl datum-cloud/tap/datum-mcp`). The
 plugin's source lives in [datum-cloud/skills](https://github.com/datum-cloud/skills).
+
+### datum-networking
+
+Create and troubleshoot Datum Cloud Application Load Balancers, the hostnames
+and domains in front of them, and the networks and network services behind
+them. It uses the same diagnosis and procedures as Datum's own assistant, and
+ships from the network-services-operator repository.
+
+- `site-triage` agent for "why isn't my site up?", read-only
+- 17 procedures for creating load balancers and networks, and for hostnames,
+  domain verification, DNS, certificates, origins, the WAF and access logs
+- 5 datumctl how-tos: load balancers, HTTPRoutes, client traffic policies,
+  domains and networks
+
+**Prerequisites:** install datum-mcp (`brew install datum-cloud/tap/datum-mcp`).
+Installing the plugin also installs the `datum-cloud` base plugin, which runs it.
 
 ### milo-activity
 
