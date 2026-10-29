@@ -8,8 +8,10 @@ Claude the agents and skills to work with that product.
 
 | Plugin | What it does | Version |
 |--------|--------------|---------|
+| [datum-cloud](https://github.com/datum-cloud/skills) | Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server | 1.1.0 |
 | [datum-networking](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) | Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks | 0.1.0 |
 | [milo-activity](./plugins/milo-activity/) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.0.0 |
+| [milo-observe](https://github.com/milo-os/telemetry/tree/main/claude-plugin) | Query project logs, export metrics to Grafana Cloud, and read the status metrics Datum publishes for your resources | 0.1.0 |
 
 ## Install
 
@@ -17,8 +19,12 @@ Add the marketplace, then install the plugins you want:
 
 ```bash
 claude plugin marketplace add datum-cloud/claude-code-plugins
+claude plugin install datum-cloud@datum-claude-code-plugins
 claude plugin install milo-activity@datum-claude-code-plugins
 ```
+
+Start with `datum-cloud`. It signs you in and connects Claude to your
+projects, and the product plugins build on it.
 
 Inside a session, `/plugin marketplace add datum-cloud/claude-code-plugins`
 does the same, and `/plugin` lets you browse and install.
@@ -37,6 +43,23 @@ versions.
 
 ## Plugins
 
+### datum-cloud
+
+The base plugin for working with Datum Cloud. It starts the
+[Datum MCP server](https://github.com/datum-cloud/datum-mcp), so Claude can
+read, change and diagnose your resources, and adds the hosted Datum Docs MCP
+server so Claude answers from the current documentation.
+
+- `sign-in`: sign in with `datumctl` and `datum-mcp`, and pick the
+  organization and project to work in
+- `ci-service-account`: set up a service account for GitHub Actions, other
+  CI systems and headless agents
+- `datum-cloud-assistant`: when to hand a question to Patch, Datum's own
+  assistant
+
+**Prerequisites:** install `datumctl` and `datum-mcp`
+(`brew install datum-cloud/tap/datumctl datum-cloud/tap/datum-mcp`). The
+plugin's source lives in [datum-cloud/skills](https://github.com/datum-cloud/skills).
 ### datum-networking
 
 Create and troubleshoot Datum Cloud Application Load Balancers, the hostnames
@@ -68,6 +91,23 @@ auditing, and policy authoring.
 
 **Prerequisites:** the `activity` binary must be on your PATH and configured
 as an MCP server separately.
+
+### milo-observe
+
+Query your project's logs, send its metrics to Grafana Cloud or any Prometheus
+remote-write endpoint, and read the status metrics Datum publishes for every
+resource. The plugin lives in
+[milo-os/telemetry](https://github.com/milo-os/telemetry/tree/main/claude-plugin),
+next to the telemetry service it describes.
+
+- `query-logs`: search, tail and filter logs, including load balancer access
+  logs, with `datumctl telemetry`
+- `export-metrics`: set up and check an ExportPolicy
+- `status-metrics`: find resources that aren't ready and write alerts from the
+  `_info` and `_status_condition` series, with a catalog of every family
+
+**Prerequisites:** `datumctl`, signed in, and the telemetry plugin
+(`datumctl plugin install telemetry`) for logs.
 
 ## Claude Desktop
 
