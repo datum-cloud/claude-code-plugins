@@ -8,6 +8,12 @@ Notable changes to the Datum Cloud Claude Code plugins.
 
 - **`datum-dns` plugin.** Claude can create and troubleshoot DNS zones and records on Datum Cloud: why a domain isn't resolving, domain verification, registrar delegation, records that aren't live or report `NotOwner` or `Conflict`, and records Datum manages for you. `/datum-dns:move-zone` moves a domain in from another provider, checking DNSSEC before the nameserver cutover and asking before every write. The plugin ships from the dns-operator repository and installs the datum-cloud plugin, which runs datum-mcp.
 
+## [datum-networking 0.1.0] - 2026-10-29
+
+### Added
+
+- **`datum-networking` plugin.** Create a Datum Cloud load balancer and find out why one isn't serving, from Claude Code, with the same diagnosis and procedures Datum's own assistant uses. It covers hostnames, domain verification, DNS delegation, certificates, unreachable origins, the WAF and access logs, plus networks and network services, and adds a read-only `site-triage` agent. It installs the `datum-cloud` base plugin, which runs datum-mcp; install datum-mcp first.
+
 ## [datum-cloud 1.1.0] - 2026-10-29
 
 ### Added
