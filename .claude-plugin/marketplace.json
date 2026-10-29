@@ -22,6 +22,22 @@
       "homepage": "https://www.datum.net/docs/agents/overview"
     },
     {
+      "name": "datum-compute",
+      "description": "Deploy containers to Datum Cloud Compute, put them on a public URL, operate them, and find out why a workload isn't running",
+      "author": {
+        "name": "Datum Cloud",
+        "email": "engineering@datumcloud.io"
+      },
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/datum-cloud/compute.git",
+        "path": "claude-plugin",
+        "sha": "bf96db1709eecc87a2144a187ca1f16d810bb499"
+      },
+      "category": "cloud",
+      "homepage": "https://github.com/datum-cloud/compute"
+    },
+    {
       "name": "milo-activity",
       "description": "Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service",
       "author": {
