@@ -18,7 +18,7 @@
         "source": "git-subdir",
         "url": "https://github.com/milo-os/activity.git",
         "path": "claude-plugin",
-        "sha": "ea9e30ef4af1d0040e179cbb7a1ed6cdd5a63726"
+        "sha": "fbbef21ce6c701736bd010dc417386e395f77702"
       },
       "category": "observability",
       "homepage": "https://github.com/milo-os/activity"

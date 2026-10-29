@@ -8,7 +8,7 @@ Claude the agents and skills to work with that product.
 
 | Plugin | What it does | Version |
 |--------|--------------|---------|
-| [milo-activity](https://github.com/milo-os/activity/tree/main/claude-plugin) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.1.0 |
+| [milo-activity](https://github.com/milo-os/activity/tree/main/claude-plugin) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.1.1 |
 | [milo-observe](https://github.com/milo-os/telemetry/tree/main/claude-plugin) | Query project logs, export metrics to Grafana Cloud, and read the status metrics Datum publishes for your resources | 0.1.0 |
 
 ## Install
