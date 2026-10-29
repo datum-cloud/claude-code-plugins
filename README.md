@@ -60,6 +60,7 @@ server so Claude answers from the current documentation.
 **Prerequisites:** install `datumctl` and `datum-mcp`
 (`brew install datum-cloud/tap/datumctl datum-cloud/tap/datum-mcp`). The
 plugin's source lives in [datum-cloud/skills](https://github.com/datum-cloud/skills).
+
 ### datum-networking
 
 Create and troubleshoot Datum Cloud Application Load Balancers, the hostnames
