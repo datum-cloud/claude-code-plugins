@@ -22,6 +22,21 @@
       "homepage": "https://www.datum.net/docs/agents/overview"
     },
     {
+      "name": "datum-dns",
+      "description": "Create and troubleshoot DNS zones and records on Datum Cloud, and move a domain in from another provider",
+      "author": {
+        "name": "Datum Cloud",
+        "email": "engineering@datumcloud.io"
+      },
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/datum-cloud/dns-operator.git",
+        "path": "claude-plugin"
+      },
+      "category": "networking",
+      "homepage": "https://github.com/datum-cloud/dns-operator"
+    },
+    {
       "name": "milo-activity",
       "description": "Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service",
       "author": {
