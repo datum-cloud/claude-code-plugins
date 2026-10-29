@@ -8,6 +8,7 @@ Claude the agents and skills to work with that product.
 
 | Plugin | What it does | Version |
 |--------|--------------|---------|
+| [datum-networking](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) | Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks | 0.1.0 |
 | [milo-activity](./plugins/milo-activity/) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.0.0 |
 
 ## Install
@@ -35,6 +36,22 @@ choose **Enable auto-update**. Without it, run
 versions.
 
 ## Plugins
+
+### datum-networking
+
+Create and troubleshoot Datum Cloud Application Load Balancers, the hostnames
+and domains in front of them, and the networks and network services behind
+them. It uses the same diagnosis and procedures as Datum's own assistant, and
+ships from the network-services-operator repository.
+
+- `site-triage` agent for "why isn't my site up?", read-only
+- 17 procedures for creating load balancers and networks, and for hostnames,
+  domain verification, DNS, certificates, origins, the WAF and access logs
+- 5 datumctl how-tos: load balancers, HTTPRoutes, client traffic policies,
+  domains and networks
+
+**Prerequisites:** install datum-mcp (`brew install datum-cloud/tap/datum-mcp`).
+The plugin starts it for you.
 
 ### milo-activity
 

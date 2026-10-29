@@ -8,6 +8,21 @@
   },
   "plugins": [
     {
+      "name": "datum-networking",
+      "description": "Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks, using the same diagnosis Datum's own assistant runs",
+      "author": {
+        "name": "Datum Cloud",
+        "email": "engineering@datumcloud.io"
+      },
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/datum-cloud/network-services-operator.git",
+        "path": "claude-plugin"
+      },
+      "category": "networking",
+      "homepage": "https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin"
+    },
+    {
       "name": "milo-activity",
       "description": "Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service",
       "author": {
