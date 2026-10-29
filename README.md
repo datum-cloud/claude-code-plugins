@@ -9,6 +9,7 @@ Claude the agents and skills to work with that product.
 | Plugin | What it does | Version |
 |--------|--------------|---------|
 | [milo-activity](./plugins/milo-activity/) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.0.0 |
+| [milo-observe](https://github.com/milo-os/telemetry/tree/main/claude-plugin) | Query project logs, export metrics to Grafana Cloud, and read the status metrics Datum publishes for your resources | 0.1.0 |
 
 ## Install
 
@@ -51,6 +52,23 @@ auditing, and policy authoring.
 
 **Prerequisites:** the `activity` binary must be on your PATH and configured
 as an MCP server separately.
+
+### milo-observe
+
+Query your project's logs, send its metrics to Grafana Cloud or any Prometheus
+remote-write endpoint, and read the status metrics Datum publishes for every
+resource. The plugin lives in
+[milo-os/telemetry](https://github.com/milo-os/telemetry/tree/main/claude-plugin),
+next to the telemetry service it describes.
+
+- `query-logs`: search, tail and filter logs, including load balancer access
+  logs, with `datumctl telemetry`
+- `export-metrics`: set up and check an ExportPolicy
+- `status-metrics`: find resources that aren't ready and write alerts from the
+  `_info` and `_status_condition` series, with a catalog of every family
+
+**Prerequisites:** `datumctl`, signed in, and the telemetry plugin
+(`datumctl plugin install telemetry`) for logs.
 
 ## Claude Desktop
 
