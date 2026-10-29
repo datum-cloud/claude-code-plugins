@@ -51,7 +51,7 @@ ships from the network-services-operator repository.
   domains and networks
 
 **Prerequisites:** install datum-mcp (`brew install datum-cloud/tap/datum-mcp`).
-The plugin starts it for you.
+Installing the plugin also installs the `datum-cloud` base plugin, which runs it.
 
 ### milo-activity
 
