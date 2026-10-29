@@ -1,36 +1,12 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "datum-claude-code-plugins",
-  "description": "Claude Code plugin marketplace with platform engineering, networking, and GTM tools",
+  "description": "Claude Code plugins for working with Datum Cloud products",
   "owner": {
     "name": "Datum Cloud",
     "email": "engineering@datumcloud.io"
   },
   "plugins": [
-    {
-      "name": "datum-platform",
-      "description": "Kubernetes platform engineering automation with aggregated API servers, controller patterns, and GitOps deployment",
-      "version": "1.22.0",
-      "author": {
-        "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
-      },
-      "source": "./plugins/datum-platform",
-      "category": "platform-engineering",
-      "homepage": "https://github.com/datum-cloud/claude-code-plugins"
-    },
-    {
-      "name": "datum-gtm",
-      "description": "Go-to-market automation with commercial strategy, product discovery, and customer support",
-      "version": "1.1.1",
-      "author": {
-        "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
-      },
-      "source": "./plugins/datum-gtm",
-      "category": "business",
-      "homepage": "https://github.com/datum-cloud/claude-code-plugins"
-    },
     {
       "name": "milo-activity",
       "description": "Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service",
@@ -43,5 +19,9 @@
       "category": "observability",
       "homepage": "https://github.com/datum-cloud/activity"
     }
-  ]
+  ],
+  "renames": {
+    "datum-platform": null,
+    "datum-gtm": null
+  }
 }

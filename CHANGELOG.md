@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [datum-platform and datum-gtm removed] - 2026-10-29
+
+### Removed
+
+- **`datum-platform` and `datum-gtm` moved to an internal marketplace.** Both plugins serve people who build and run Datum Cloud, so they now ship from a private marketplace and this one lists only plugins for people using Datum Cloud. Installs from here are dropped from your settings with a "Removed from the marketplace" notice. Datum employees set up the internal marketplace once on their machine; skill names are unchanged.
+
 ## [1.22.0] - 2026-10-21
 
 ### Changed
