@@ -8,6 +8,20 @@
   },
   "plugins": [
     {
+      "name": "datum-cloud",
+      "description": "Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server, with skills for CI service accounts and handing questions to Patch",
+      "author": {
+        "name": "Datum Cloud",
+        "email": "engineering@datumcloud.io"
+      },
+      "source": {
+        "source": "github",
+        "repo": "datum-cloud/skills"
+      },
+      "category": "cloud",
+      "homepage": "https://www.datum.net/docs/agents/overview"
+    },
+    {
       "name": "milo-activity",
       "description": "Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service",
       "author": {
