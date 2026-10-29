@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [milo-observe 0.1.0] - 2026-10-29
+
+### Added
+
+- **`milo-observe` plugin.** Ask Claude to search your project's logs, send its metrics to Grafana Cloud, or find the resources that aren't ready. It covers log queries with the `datumctl telemetry` plugin, setting up and checking an ExportPolicy, and querying the status metrics Datum publishes for every resource, with a catalog of each metric family. The plugin ships from milo-os/telemetry, next to the service it describes.
+
 ## [datum-platform and datum-gtm removed] - 2026-10-29
 
 ### Removed

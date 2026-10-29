@@ -12,6 +12,7 @@ go-to-market) do not belong here. They live in the internal marketplace in
 datum-cloud/infra.
 
 - **milo-activity**: query audit logs, investigate incidents, and author ActivityPolicies
+- **milo-observe** (from milo-os/telemetry): query logs, export metrics, and read resource status metrics
 
 ## Validation Commands
 

@@ -17,6 +17,21 @@
       "source": "./plugins/milo-activity",
       "category": "observability",
       "homepage": "https://github.com/datum-cloud/activity"
+    },
+    {
+      "name": "milo-observe",
+      "description": "Query project logs, export metrics to Grafana Cloud, and read the status metrics Datum publishes for your resources",
+      "author": {
+        "name": "Datum Cloud",
+        "email": "engineering@datumcloud.io"
+      },
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/milo-os/telemetry.git",
+        "path": "claude-plugin"
+      },
+      "category": "observability",
+      "homepage": "https://github.com/milo-os/telemetry/tree/main/claude-plugin"
     }
   ],
   "renames": {
