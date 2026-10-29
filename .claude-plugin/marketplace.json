@@ -10,7 +10,6 @@
     {
       "name": "milo-activity",
       "description": "Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service",
-      "version": "1.0.0",
       "author": {
         "name": "Datum Cloud",
         "email": "engineering@datumcloud.io"
