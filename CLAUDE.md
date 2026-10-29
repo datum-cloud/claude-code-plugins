@@ -4,20 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a Claude Code plugin marketplace containing two plugins for Datum Cloud:
+This is the public Claude Code plugin marketplace for people using Datum Cloud.
+Each plugin helps Claude work with one Datum Cloud product.
 
-- **datum-platform**: Kubernetes platform engineering automation (aggregated API servers, controller patterns, GitOps deployment)
-- **datum-gtm**: Go-to-market automation (commercial strategy, product discovery, customer support)
+Plugins for people building and running Datum Cloud (platform engineering,
+go-to-market) do not belong here. They live in the internal marketplace in
+datum-cloud/infra.
+
+- **milo-activity**: query audit logs, investigate incidents, and author ActivityPolicies
 
 ## Validation Commands
 
 ```bash
 # Validate marketplace and plugin structure
 claude plugin validate .
-
-# Or from within Claude Code
-/plugin validate .
 ```
+
+`validate` only reads files in this repository. A plugin listed with a remote
+source (`github`, `git-subdir`) is only fetched at install, so install it once
+to check a new entry.
 
 ## Repository Structure
 
@@ -26,97 +31,41 @@ claude plugin validate .
   marketplace.json          # Marketplace catalog listing plugins
 
 plugins/
-  datum-platform/
-    .claude-plugin/
-      plugin.json           # Plugin manifest
-    agents/                 # Agent definitions (markdown)
-    skills/                 # Knowledge modules (SKILL.md + topic files)
-    commands/               # Slash command definitions
-    hooks/                  # hooks.json plus the PreToolUse gates it runs
-    scripts/                # Utility scripts (auto-validate.sh)
-
-  datum-gtm/
+  milo-activity/
     .claude-plugin/
       plugin.json           # Plugin manifest
     agents/
     skills/
-    commands/
 
-docs/                       # User documentation
+claude-desktop/             # datumctl sign-in helper for Claude Desktop
 ```
 
-## Key Concepts
+## Adding a Plugin
 
-### Agents
+A product plugin can live in this repository under `plugins/`, or in the
+product's own repository in a top-level `claude-plugin/` folder, listed here
+with a `git-subdir` source:
 
-Specialized agents with narrow expertise. Each agent has:
-- A markdown file in `agents/` with YAML front matter (name, description, tools, model)
-- A specific role in the pipeline (discovery → design → implementation → review → deploy)
-- Skills they load based on task
+```json
+{
+  "name": "datum-dns",
+  "source": {
+    "source": "git-subdir",
+    "url": "https://github.com/datum-cloud/dns-operator.git",
+    "path": "claude-plugin"
+  }
+}
+```
 
-**datum-platform agents**: plan, api-dev, frontend-dev, sre, test-engineer, code-reviewer, tech-writer, operational-reviewer, pr-adversary, pr-conventions-reviewer, pr-review-fixer
-**datum-gtm agents**: product-discovery, commercial-strategist, gtm-comms, support-triage
-
-### Skills
-
-Knowledge modules agents read during context discovery. Each skill has:
-- `SKILL.md` as the entry point
-- Additional topic files (e.g., `implementation.md`, `concepts.md`)
-- Optional scripts for validation or scaffolding
-
-### Commands
-
-Slash commands users invoke (e.g., `/discover`, `/review`, `/deploy`). Defined in markdown files under `commands/`.
-
-### Hooks
-
-Automation hooks in `hooks/hooks.json`. `PostToolUse` runs validation after Write/Edit operations. Two `PreToolUse` hooks run on every Bash call. `pr-op-gate` measures every GitHub post a Bash command makes, one chained segment at a time. A `gh pr|issue create|edit` gets the whole `pr-conventions` bar: a create must meet the bar; an edit is scored against the body already posted and denied only where it comes out worse. Comments, reviews, close comments, merge bodies, release notes, and their `gh api` and GraphQL equivalents get only the rules that hold everywhere: em dashes, banned words, the phrase table, and hard wrap. A post whose text the gate cannot read passes with a note saying it went unmeasured. Run `plugins/datum-platform/hooks/tests/pr-op-gate-test` after changing the gate. The gate reads its phrase table from the `clear-writing` skill at run time, so editing that table changes what the gate refuses. `deny-gh-api-write` fires only when the calling agent is `pr-adversary`, `pr-conventions-reviewer`, or `code-reviewer`, and refuses GitHub writes, git mutations, network clients, and shell wrappers for them. An agent's `tools:` line cannot scope Bash, so this hook is the only mechanical check on those read-only reviewers, and it is a backstop against an accidental write rather than a control.
-
-### Pipeline
-
-Features flow through stages: `request → discovery → spec → pricing → design → ui-patterns → implementation → test → review → deploy → document → announce`
-
-Pipeline artifacts live in `.claude/pipeline/` in the target repository (not this plugin repo).
-
-## Plugin Development
-
-### Adding a New Agent
-
-1. Create `plugins/{plugin}/agents/{name}.md` with YAML front matter:
-   ```yaml
-   ---
-   name: agent-name
-   description: >
-     When and how to use this agent
-   tools: Read, Write, Edit, Grep, Glob, Bash
-   model: sonnet
-   ---
-   ```
-2. Document workflow, skills to reference, and pipeline contract
-3. Set `model:` from the `model-tiers` skill rather than copying the value from a neighboring agent. Opus for work that authors a change carrying design risk, sonnet for bounded work against an explicit brief, haiku for read-only lookup. Add the agent to that skill's table.
-
-### Adding a New Skill
-
-1. Create directory `plugins/{plugin}/skills/{skill-name}/`
-2. Add `SKILL.md` as entry point
-3. Add supporting files for specific topics
-4. Reference skill in relevant agent definitions
-
-### Adding a New Command
-
-Create `plugins/{plugin}/commands/{command}.md` defining the slash command behavior.
-
-## Path References
-
-Use `${CLAUDE_PLUGIN_ROOT}` for dynamic path resolution in hooks and scripts. This resolves to the plugin's installation directory at runtime.
+- Keep the entry `name` equal to the `name` in the plugin's `plugin.json`, or installs fail.
+- Use `${CLAUDE_PLUGIN_ROOT}` for paths in hooks and scripts.
+- Never change a published plugin's `name`. To retire one, remove its entry and map its name to `null` in `renames`; never edit an existing `renames` entry.
 
 ## Versioning and Releases
 
-When making changes to plugins, follow these requirements:
+Set `version` in the plugin's `plugin.json` only, not in its marketplace entry.
+Users get an update only when that version changes.
 
-### Version Bumps
-
-**Always bump the version** in `plugins/{plugin}/.claude-plugin/plugin.json` when making changes:
 - **Patch** (1.0.x): Bug fixes, typo corrections, minor documentation fixes
 - **Minor** (1.x.0): New features, new skills, new agents, significant documentation additions
 - **Major** (x.0.0): Breaking changes, major restructuring
@@ -128,26 +77,10 @@ Maintain `CHANGELOG.md` at the repo root. For each release:
 - Keep entries concise and user-focused (what value does this provide?)
 - Avoid implementation details - focus on capabilities added
 
-Example:
-```markdown
-## [1.3.0] - 2026-02-20
-
-### Added
-
-- **Feature gates pattern** (`k8s-apiserver-patterns`) — Guidance for safely introducing experimental features with Alpha/Beta/GA lifecycle stages.
-```
-
-### README Updates
-
-Update the version table in `README.md` to match `plugin.json`:
-```markdown
-| [datum-platform](./plugins/datum-platform/) | ... | 1.3.0 |
-```
-
 ### Release Checklist
 
-1. Bump version in `plugins/{plugin}/.claude-plugin/plugin.json`
+1. Bump version in the plugin's `plugin.json`
 2. Add entry to `CHANGELOG.md` with date
-3. Update version in `README.md` table
+3. Update the version in the `README.md` table
 4. Commit with conventional commit message: `feat(plugin-name): description`
-5. Push to main (plugins auto-update from main branch)
+5. Merge to main (plugins update from the main branch)
