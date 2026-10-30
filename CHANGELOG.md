@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [datum-compute 0.1.0] - 2026-10-29
+
+### Added
+
+- **`datum-compute` plugin for Datum Cloud Compute.** Claude can deploy a container behind a public HTTPS URL, operate workloads with `datumctl compute`, and diagnose a workload that isn't running using the same procedures as Datum's in-product assistant. It ships from the compute repository and installs the `datum-cloud` base plugin with it.
+
 ## [datum-dns 1.0.0] - 2026-10-29
 
 ### Added
