@@ -10,7 +10,7 @@ Claude the agents and skills to work with that product.
 |--------|--------------|---------|
 | [datum-cloud](https://github.com/datum-cloud/skills) | Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server | 1.1.0 |
 | [datum-dns](https://github.com/datum-cloud/dns-operator/tree/main/claude-plugin) | Create and troubleshoot DNS zones and records on Datum Cloud, and move a domain in from another provider | 1.0.0 |
-| [datum-networking](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) | Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks | 0.1.0 |
+| [datum-networking](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) | Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks | 0.1.1 |
 | [milo-activity](https://github.com/milo-os/activity/tree/main/claude-plugin) | Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service | 1.1.1 |
 | [milo-observe](https://github.com/milo-os/telemetry/tree/main/claude-plugin) | Query project logs, export metrics to Grafana Cloud, and read the status metrics Datum publishes for your resources | 0.1.0 |
 
