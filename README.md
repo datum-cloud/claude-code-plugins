@@ -17,17 +17,28 @@ Claude the agents and skills to work with that product.
 
 ## Install
 
-Add the marketplace, then install the plugins you want:
+Install `datumctl` and `datum-mcp`, then add the marketplace and the Datum
+Cloud plugins in one command:
+
+```bash
+brew install datum-cloud/tap/datumctl datum-cloud/tap/datum-mcp
+claude plugin marketplace add datum-cloud/claude-code-plugins && for p in datum-cloud datum-networking datum-dns datum-compute milo-observe; do claude plugin install "$p@datum-claude-code-plugins"; done
+```
+
+Run `claude` and ask it to sign you in to Datum Cloud. The command is safe to
+run again, and skips anything already installed.
+
+To pick plugins yourself, add the marketplace, then install the ones you want:
 
 ```bash
 claude plugin marketplace add datum-cloud/claude-code-plugins
-claude plugin install datum-cloud@datum-claude-code-plugins
 claude plugin install datum-dns@datum-claude-code-plugins
-claude plugin install milo-activity@datum-claude-code-plugins
 ```
 
-Start with `datum-cloud`. It signs you in and connects Claude to your
-projects, and the product plugins build on it.
+`datum-compute`, `datum-dns` and `datum-networking` install `datum-cloud` for
+you. It signs you in and connects Claude to your projects, so install it first
+if you pick other plugins. `milo-activity` is left out
+of the one-line install because it needs the `activity` binary set up first.
 
 Inside a session, `/plugin marketplace add datum-cloud/claude-code-plugins`
 does the same, and `/plugin` lets you browse and install.
