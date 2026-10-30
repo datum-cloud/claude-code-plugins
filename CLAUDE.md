@@ -12,6 +12,7 @@ go-to-market) do not belong here. They live in the internal marketplace in
 datum-cloud/infra.
 
 - **datum-cloud**: sign in and connect Claude to Datum Cloud projects through datum-mcp (source: datum-cloud/skills)
+- **datum-dns** (in datum-cloud/dns-operator): create and troubleshoot DNS zones and records, and import zones
 - **milo-activity** (from milo-os/activity): query audit logs, investigate incidents, and author ActivityPolicies
 - **milo-observe** (from milo-os/telemetry): query logs, export metrics, and read resource status metrics
 
