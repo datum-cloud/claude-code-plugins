@@ -56,6 +56,7 @@ with a `git-subdir` source:
 }
 ```
 
+- List a plugin from its repository's default branch. Don't pin a `sha` or `ref`: a change ships when the plugin's `plugin.json` version changes, with no catalog PR needed.
 - Keep the entry `name` equal to the `name` in the plugin's `plugin.json`, or installs fail.
 - Use `${CLAUDE_PLUGIN_ROOT}` for paths in hooks and scripts.
 - Never change a published plugin's `name`. To retire one, remove its entry and map its name to `null` in `renames`; never edit an existing `renames` entry.
