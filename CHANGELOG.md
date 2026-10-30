@@ -8,6 +8,18 @@ Notable changes to the Datum Cloud Claude Code plugins.
 
 - **`site-triage` can only read** (datum-networking). The agent now gets an explicit list of datum-mcp's read and diagnosis tools for load balancers, networks and DNS, with no shell, so it can't change a load balancer while it investigates. It can also check a hostname's DNS zone, records and delegation.
 
+## [datum-cloud 1.2.0] - 2026-10-29
+
+### Changed
+
+- **`datum-cloud` is now only the base plugin.** The load balancer, routing, domain, network and DNS skills moved to `datum-networking` and `datum-dns`, so installing a product plugin no longer gives you two competing copies. The CI skill also tells Claude never to print a Datum MCP token.
+
+## [datum-compute 0.1.0] - 2026-10-29
+
+### Added
+
+- **`datum-compute` plugin for Datum Cloud Compute.** Claude can deploy a container behind a public HTTPS URL, operate workloads with `datumctl compute`, and diagnose a workload that isn't running using the same procedures as Datum's in-product assistant. It ships from the compute repository and installs the `datum-cloud` base plugin with it.
+
 ## [datum-dns 1.0.0] - 2026-10-29
 
 ### Added
