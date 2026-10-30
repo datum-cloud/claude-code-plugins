@@ -2,6 +2,12 @@
 
 Notable changes to the Datum Cloud Claude Code plugins.
 
+## [datum-networking 0.1.1] - 2026-10-30
+
+### Fixed
+
+- **`site-triage` can only read** (datum-networking). The agent now gets an explicit list of datum-mcp's read and diagnosis tools for load balancers, networks and DNS, with no shell, so it can't change a load balancer while it investigates. It can also check a hostname's DNS zone, records and delegation.
+
 ## [datum-dns 1.0.0] - 2026-10-29
 
 ### Added
