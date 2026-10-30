@@ -169,7 +169,9 @@ in the internal plugins README.
 ## Contributing
 
 See [CLAUDE.md](./CLAUDE.md) for how plugins in this repository are
-structured, versioned and released. Validate before opening a pull request:
+structured, versioned and released. Product plugins are listed from their
+repository's default branch, never pinned to a commit, and ship to customers
+when their `plugin.json` version changes. Validate before opening a pull request:
 
 ```bash
 claude plugin validate .
