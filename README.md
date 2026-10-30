@@ -22,7 +22,7 @@ Cloud plugins in one command:
 
 ```bash
 brew install datum-cloud/tap/datumctl datum-cloud/tap/datum-mcp
-claude plugin marketplace add datum-cloud/claude-code-plugins && for p in datum-cloud datum-networking datum-dns datum-compute milo-observe; do claude plugin install "$p@datum-claude-code-plugins"; done
+claude plugin marketplace add datum-cloud/claude-code-plugins && for p in datum-cloud datum-networking datum-dns datum-compute milo-observe; do claude plugin install "$p@datum-claude-code-plugins" || break; done
 ```
 
 Run `claude` and ask it to sign you in to Datum Cloud. The command is safe to
