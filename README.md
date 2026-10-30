@@ -8,7 +8,7 @@ Claude the agents and skills to work with that product.
 
 | Plugin | What it does | Version |
 |--------|--------------|---------|
-| [datum-cloud](https://github.com/datum-cloud/skills) | Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server | 1.1.0 |
+| [datum-cloud](https://github.com/datum-cloud/skills) | Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server | 1.2.0 |
 | [datum-compute](https://github.com/datum-cloud/compute/tree/main/claude-plugin) | Deploy containers to Datum Cloud Compute, put them on a public URL, operate them, and find out why a workload isn't running | 0.1.0 |
 | [datum-dns](https://github.com/datum-cloud/dns-operator/tree/main/claude-plugin) | Create and troubleshoot DNS zones and records on Datum Cloud, and move a domain in from another provider | 1.0.0 |
 | [datum-networking](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) | Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks | 0.1.0 |
