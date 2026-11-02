@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: datum-cloud/actions/.github/workflows/ci-basic.yaml@v1.26.0
+    with:
+      run: |
+        sh_files=$(git ls-files "*.sh")
+        [ -n "$sh_files" ]
+        shellcheck $sh_files
+        for f in $(git ls-files "*.json"); do jq empty "$f"; done
