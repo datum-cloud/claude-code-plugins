@@ -4,7 +4,7 @@
   "description": "Claude Code plugins for working with Datum Cloud products",
   "owner": {
     "name": "Datum Cloud",
-    "email": "engineering@datumcloud.io"
+    "email": "support@datum.net"
   },
   "plugins": [
     {
@@ -12,7 +12,7 @@
       "description": "Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server, with skills for CI service accounts and handing questions to Patch",
       "author": {
         "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
+        "email": "support@datum.net"
       },
       "source": {
         "source": "github",
@@ -26,7 +26,7 @@
       "description": "Deploy containers to Datum Cloud Compute, put them on a public URL, operate them, and find out why a workload isn't running",
       "author": {
         "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
+        "email": "support@datum.net"
       },
       "source": {
         "source": "git-subdir",
@@ -41,7 +41,7 @@
       "description": "Create and troubleshoot DNS zones and records on Datum Cloud, and move a domain in from another provider",
       "author": {
         "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
+        "email": "support@datum.net"
       },
       "source": {
         "source": "git-subdir",
@@ -56,7 +56,7 @@
       "description": "Create and troubleshoot Datum Cloud load balancers, hostnames, domains and networks, using the same diagnosis Datum's own assistant runs",
       "author": {
         "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
+        "email": "support@datum.net"
       },
       "source": {
         "source": "git-subdir",
@@ -71,7 +71,7 @@
       "description": "Query audit logs, investigate incidents, and author ActivityPolicies using the Milo Activity service",
       "author": {
         "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
+        "email": "support@datum.net"
       },
       "source": {
         "source": "git-subdir",
@@ -86,7 +86,7 @@
       "description": "Query project logs, export metrics to Grafana Cloud, and read the status metrics Datum publishes for your resources",
       "author": {
         "name": "Datum Cloud",
-        "email": "engineering@datumcloud.io"
+        "email": "support@datum.net"
       },
       "source": {
         "source": "git-subdir",
